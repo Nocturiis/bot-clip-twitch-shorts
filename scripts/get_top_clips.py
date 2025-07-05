@@ -1,3 +1,4 @@
+# scripts/get_top_clips.py
 import requests
 import os
 import json
@@ -27,77 +28,77 @@ MAX_CLIPS_PER_BROADCASTER_IN_FINAL_SELECTION = 1 # Pour un short unique, on veut
 
 # Liste des IDs de jeux pour lesquels vous voulez récupérer des clips.
 GAME_IDS = [
-    "509670",        # Just Chatting
-    "21779",         # League of Legends
-    "32982",         # Grand Theft Auto V
-    "512965",        # VALORANT
-    "518018",        # Minecraft
-    "513143",        # Fortnite
-    "32982",         # Grand Theft Auto V
-    "32399",         # Counter-Strike
-    "511224",        # Apex Legends
-    "506520",        # Dota 2
-    "490422",        # Dead by Daylight
-    "514873",        # Call of Duty: Warzone
-    "65768",         # Rocket League
-    "518883",        # EA Sports FC 24
-    "180025139",     # Mario Kart 8 Deluxe
-    "280721",        # Teamfight Tactics
-    "488427",        # World of Warcraft
-    "1467408070",    # Rust
-    "32213",         # Hearthstone
-    "138585",        # Chess
-    "493306",        # Overwatch 2
-    "509660",        # Special Events
-    "1063683693",    # Pokémon Scarlet and Violet
-    "1678120671",    # Baldur's Gate 3
-    "27471",         # osu!
-    "507316",        # Phasmophobia
-    "19326",         # The Elder Scrolls V: Skyrim
-    "512710",        # Fall Guys
-    "1285324545",    # Lethal Company
+    "509670",          # Just Chatting
+    "21779",           # League of Legends
+    "32982",           # Grand Theft Auto V
+    "512965",          # VALORANT
+    "518018",          # Minecraft
+    "513143",          # Fortnite
+    "32982",           # Grand Theft Auto V
+    "32399",           # Counter-Strike
+    "511224",          # Apex Legends
+    "506520",          # Dota 2
+    "490422",          # Dead by Daylight
+    "514873",          # Call of Duty: Warzone
+    "65768",           # Rocket League
+    "518883",          # EA Sports FC 24
+    "180025139",       # Mario Kart 8 Deluxe
+    "280721",          # Teamfight Tactics
+    "488427",          # World of Warcraft
+    "1467408070",      # Rust
+    "32213",           # Hearthstone
+    "138585",          # Chess
+    "493306",          # Overwatch 2
+    "509660",          # Special Events
+    "1063683693",      # Pokémon Scarlet and Violet
+    "1678120671",      # Baldur's Gate 3
+    "27471",           # osu!
+    "507316",          # Phasmophobia
+    "19326",           # The Elder Scrolls V: Skyrim
+    "512710",          # Fall Guys
+    "1285324545",      # Lethal Company
     # Ajoutez d'autres IDs si nécessaire
 ]
 
 # Liste des IDs de streamers francophones populaires.
 BROADCASTER_IDS = [
-    "80716629",      # Inoxtag
-    "737048563",     # Anyme023"
-    "52130765",      # Squeezie (chaîne principale)
-    "22245231",      # SqueezieLive (sa chaîne secondaire pour le live)
-    "41719107",      # ZeratoR
-    "24147592",      # Gotaga
-    "134966333",     # Kameto
-    "737048563",     # AmineMaTue
-    "496105401",     # byilhann
-    "887001013",     # Nico_la
-    "60256640",      # Flamby
-    "253195796",     # helydia
-    "175560856",     # Hctuan
-    "57404419",      # Ponce
-    "38038890",      # Antoine Daniel
-    "48480373",      # MisterMV
-    "19075728",      # Sardoche
-    "54546583",      # Locklear
-    "50290500",      # Domingo
-    "57402636",      # RebeuDeter
-    "47565457",      # Joyca
-    "153066440",     # Michou
-    "41487980",      # Pauleta_Twitch (Pfut)
-    "31429949",      # LeBouseuh
-    "46296316",      # Maghla
-    "49896798",      # Chowh1
-    "49749557",      # Jiraya
-    "53696803",      # Wankil Studio (Laink et Terracid - chaîne principale)
-    "72366922",      # Laink (ID individuel, généralement couvert par Wankil Studio)
-    "129845722",     # Terracid (ID individuel, généralement couvert par Wankil Studio)
-    "51950294",      # Mynthos
-    "53140510",      # Etoiles
-    "134812328",     # LittleBigWhale
-    "180237751",     # Mister V (l'artiste/youtubeur, différent de MisterMV)
-    "55787682",      # Shaunz
-    "142436402",     # Ultia
-    "20875990",      # LCK_France (pour les clips de la ligue de LoL française)
+    "80716629",        # Inoxtag
+    "737048563",       # Anyme023"
+    "52130765",        # Squeezie (chaîne principale)
+    "22245231",        # SqueezieLive (sa chaîne secondaire pour le live)
+    "41719107",        # ZeratoR
+    "24147592",        # Gotaga
+    "134966333",       # Kameto
+    "737048563",       # AmineMaTue
+    "496105401",       # byilhann
+    "887001013",       # Nico_la
+    "60256640",        # Flamby
+    "253195796",       # helydia
+    "175560856",       # Hctuan
+    "57404419",        # Ponce
+    "38038890",        # Antoine Daniel
+    "48480373",        # MisterMV
+    "19075728",        # Sardoche
+    "54546583",        # Locklear
+    "50290500",        # Domingo
+    "57402636",        # RebeuDeter
+    "47565457",        # Joyca
+    "153066440",       # Michou
+    "41487980",        # Pauleta_Twitch (Pfut)
+    "31429949",        # LeBouseuh
+    "46296316",        # Maghla
+    "49896798",        # Chowh1
+    "49749557",        # Jiraya
+    "53696803",        # Wankil Studio (Laink et Terracid - chaîne principale)
+    "72366922",        # Laink (ID individuel, généralement couvert par Wankil Studio)
+    "129845722",       # Terracid (ID individuel, généralement couvert par Wankil Studio)
+    "51950294",        # Mynthos
+    "53140510",        # Etoiles
+    "134812328",       # LittleBigWhale
+    "180237751",       # Mister V (l'artiste/youtubeur, différent de MisterMV)
+    "55787682",        # Shaunz
+    "142436402",       # Ultia
+    "20875990",        # LCK_France (pour les clips de la ligue de LoL française)
     # Ajoutez d'autres IDs vérifiés ici
 ]
 
@@ -105,8 +106,9 @@ BROADCASTER_IDS = [
 CLIP_LANGUAGE = "fr" # Code ISO 639-1 pour le français
 
 # PARAMÈTRES POUR LA DURÉE CUMULÉE MINIMALE ET MAXIMALE DU SHORT FINAL
-MIN_VIDEO_DURATION_SECONDS = 40  # Minimum 40 secondes pour un Short
-MAX_VIDEO_DURATION_SECONDS = 60  # Maximum 60 secondes pour un Short
+# --- MODIFIÉ ICI ---
+MIN_VIDEO_DURATION_SECONDS = 15   # Minimum 15 secondes pour un Short
+MAX_VIDEO_DURATION_SECONDS = 180  # Maximum 180 secondes (3 minutes) pour un Short
 
 # --- FIN PARAMÈTRES ---
 
@@ -182,7 +184,8 @@ def select_next_short_clip(access_token, num_clips_per_source=100, days_ago=1, a
     if already_published_clip_ids is None:
         already_published_clip_ids = []
 
-    print(f"📊 Recherche du prochain clip pour un Short (40-60s) pour les dernières {days_ago} jour(s)...")
+    # --- LE MESSAGE CI-DESSOUS SERA MIS À JOUR AUTOMATIQUEMENT ---
+    print(f"📊 Recherche du prochain clip pour un Short ({MIN_VIDEO_DURATION_SECONDS}-{MAX_VIDEO_DURATION_SECONDS}s) pour les dernières {days_ago} jour(s)...")
     print(f"Clips déjà publiés aujourd'hui: {len(already_published_clip_ids)} IDs")
             
     end_date = datetime.now(timezone.utc)
@@ -241,7 +244,8 @@ def select_next_short_clip(access_token, num_clips_per_source=100, days_ago=1, a
             eligible_clips.append(clip)
     
     if not eligible_clips:
-        print("⚠️ Aucun clip éligible (durée entre 40 et 60s, non publié) trouvé.")
+        # --- LE MESSAGE CI-DESSOUS SERA MIS À JOUR AUTOMATIQUEMENT ---
+        print(f"⚠️ Aucun clip éligible (durée entre {MIN_VIDEO_DURATION_SECONDS} et {MAX_VIDEO_DURATION_SECONDS}s, non publié) trouvé.")
         return None
 
     # 2. Appliquer la logique de priorisation des streamers et la limite par streamer
@@ -341,7 +345,7 @@ if __name__ == "__main__":
             # Exemple:
             # current_published_ids.append(selected_clip["id"])
             # with open(published_clips_log_path, "w", encoding="utf-8") as f:
-            #     json.dump(current_published_ids, f, ensure_ascii=False, indent=2)
+            #    json.dump(current_published_ids, f, ensure_ascii=False, indent=2)
             # print(f"Clip {selected_clip['id']} ajouté à l'historique des publications.")
         else:
             print("\n❌ Aucun clip approprié n'a pu être trouvé pour le Short cette fois.")
