@@ -1,4 +1,3 @@
-# main.py
 import sys
 import os
 import json
@@ -11,7 +10,8 @@ import get_top_clips
 import download_clip
 import process_video
 import generate_metadata
-import upload_youtube
+import upload_youtube # Toujours importé, même si non utilisé pour l'upload
+
 
 # --- Chemins et configuration ---
 DATA_DIR = os.path.join(os.path.dirname(__file__), 'data')
@@ -49,19 +49,19 @@ def add_to_history(history_data, clip_id, youtube_id):
     today_str = date.today().isoformat()
     if today_str not in history_data:
         history_data[today_str] = []
-    
+        
     # Stocke l'ID Twitch du clip et l'ID YouTube du Short
     history_data[today_str].append({"twitch_clip_id": clip_id, "youtube_short_id": youtube_id, "timestamp": datetime.now().isoformat()})
     
     # OPTIONNEL: Nettoyer l'historique des anciennes entrées (ex: plus de 7 jours)
     # old_dates = [d for d in history_data if (datetime.now().date() - datetime.fromisoformat(d).date()).days > 7]
     # for d in old_dates:
-    #     del history_data[d]
+    #       del history_data[d]
     # print(f"Historique nettoyé. {len(old_dates)} anciennes entrées supprimées.")
 
 
 def main():
-    print("🚀 Début du workflow de publication de Short YouTube...")
+    print("🚀 Début du workflow de publication de Short YouTube (mode débogage / sans upload)...")
 
     # 1. Charger l'historique des clips publiés
     history = load_published_history()
@@ -92,8 +92,6 @@ def main():
         print("❌ Échec du téléchargement du clip. Fin du script.")
         sys.exit(1)
 
-    # Dans main.py, à l'intérieur de la fonction main()
-# ...
     # 5. Traiter/couper la vidéo pour s'assurer qu'elle est adaptée au Short
     print("🎬 Traitement de la vidéo pour le format Short (découpage si nécessaire)...")
     processed_file = process_video.trim_video_for_short(
@@ -101,10 +99,8 @@ def main():
         output_path=PROCESSED_CLIP_PATH,
         max_duration_seconds=get_top_clips.MAX_VIDEO_DURATION_SECONDS,
         clip_data=selected_clip,
-        enable_webcam_crop=False # Mettez à True si vous voulez activer le rognage de la webcam (nécessite get_people_coords fonctionnel)
+        enable_webcam_crop=False # Mettez à True si vous voulez activer le rognage de la webcam
     )
-# ...
-    
     
     # Si le script process_video.py n'est pas utilisé ou renvoie None
     if not processed_file:
@@ -112,35 +108,50 @@ def main():
         # Tentative d'utiliser le fichier brut si le traitement a échoué.
         # ATTENTION: Cela pourrait uploader un clip trop long !
         processed_file = downloaded_file 
-        if os.path.getsize(processed_file) == 0: # Vérifie si le fichier brut est vide
-            print("❌ Le fichier brut est vide. Impossible de continuer. Fin du script.")
+        if not os.path.exists(processed_file) or os.path.getsize(processed_file) == 0: # Vérifie si le fichier brut est vide ou n'existe pas
+            print("❌ Le fichier brut est vide ou n'existe pas. Impossible de continuer. Fin du script.")
             sys.exit(1)
         else:
             print(f"Utilisation du fichier brut pour l'upload : {processed_file}")
 
 
-    # 6. Générer les métadonnées YouTube
+    # 6. Générer les métadonnées YouTube (toujours utile pour le débogage)
     youtube_metadata = generate_metadata.generate_youtube_metadata(selected_clip)
 
+    print("\n--- Informations sur le Short (pour débogage) ---")
+    print(f"Titre: {youtube_metadata.get('title')}")
+    print(f"Description: {youtube_metadata.get('description')}")
+    print(f"Tags: {', '.join(youtube_metadata.get('tags', []))}")
+    print(f"Chemin de la vidéo finale: {processed_file}")
+    print("-------------------------------------------------\n")
+
     # 7. Authentifier et Uploader sur YouTube
-    # Pour GitHub Actions, 'client_secret.json' et 'token.json' doivent être gérés via secrets.
-    # La première fois, 'token.json' doit être généré localement et ensuite copié dans un secret GitHub.
-    youtube_service = upload_youtube.get_authenticated_service()
-    if not youtube_service:
-        print("❌ Impossible d'authentifier le service YouTube. Fin du script.")
-        sys.exit(1)
+    # LA LIGNE SUIVANTE EST MISE EN COMMENTAIRE POUR DÉSACTIVER L'UPLOAD
+    # youtube_service = upload_youtube.get_authenticated_service()
+    # if not youtube_service:
+    #     print("❌ Impossible d'authentifier le service YouTube. Fin du script.")
+    #     sys.exit(1)
 
-    youtube_video_id = upload_youtube.upload_youtube_short(youtube_service, processed_file, youtube_metadata)
+    # youtube_video_id = upload_youtube.upload_youtube_short(youtube_service, processed_file, youtube_metadata)
 
-    if youtube_video_id:
+    # Remplacé par une simulation d'upload pour le débogage
+    youtube_video_id = None # Simule qu'aucun ID n'a été retourné par l'upload
+    print("⏩ Upload YouTube désactivé par le code (ligne commentée). Pas d'upload effectué.")
+
+    if youtube_video_id: # Cette condition ne sera plus jamais vraie tant que la ligne d'upload est commentée
         print(f"🎉 Short YouTube publié avec succès ! ID: {youtube_video_id}")
-        # 8. Mettre à jour l'historique des publications
+        # 8. Mettre à jour l'historique des publications (ne sera pas appelé si l'upload est désactivé)
         add_to_history(history, selected_clip['id'], youtube_video_id)
         save_published_history(history)
         print(f"✅ Clip '{selected_clip['id']}' ajouté à l'historique des publications.")
     else:
-        print("❌ Échec de la publication du Short YouTube. Fin du script.")
-        sys.exit(1)
+        print("ℹ️ L'upload YouTube n'a pas été effectué ou a échoué (mode débogage).")
+        # Ne pas sys.exit(1) ici car c'est un comportement attendu en mode débogage
+        # Si vous voulez tester l'historique SANS upload, vous pouvez décommenter les 3 lignes ci-dessous
+        # add_to_history(history, selected_clip['id'], "SIMULATED_YOUTUBE_ID")
+        # save_published_history(history)
+        # print(f"✅ Clip '{selected_clip['id']}' SIMULÉ ajouté à l'historique des publications.")
+
 
     # 9. Nettoyage des fichiers temporaires
     print("🧹 Nettoyage des fichiers temporaires...")
