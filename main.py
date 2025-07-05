@@ -102,6 +102,21 @@ def main():
         enable_webcam_crop=False # Mettez à True si vous voulez activer le rognage de la webcam
     )
     
+    # --- DÉBUT DES NOUVELLES VÉRIFICATIONS ---
+    if processed_file: # Si process_video.trim_video_for_short a renvoyé un chemin (donc succès apparent)
+        if not os.path.exists(processed_file):
+            print(f"❌ ERREUR MAJEURE : Le fichier traité devrait exister à {processed_file}, mais il est introuvable après traitement.")
+            print("Cela indique un problème lors de l'écriture du fichier vidéo par MoviePy.")
+            processed_file = None # Force le passage à l'utilisation du fichier brut ou l'arrêt
+        elif os.path.getsize(processed_file) == 0:
+            print(f"❌ ERREUR MAJEURE : Le fichier traité {processed_file} est vide !")
+            print("Cela indique que MoviePy a créé le fichier mais n'a pas pu y écrire de données vidéo.")
+            processed_file = None # Force le passage à l'utilisation du fichier brut ou l'arrêt
+        else:
+            print(f"✅ Fichier traité trouvé et non vide : {processed_file} (taille : {os.path.getsize(processed_file)} octets).")
+    # --- FIN DES NOUVELLES VÉRIFICATIONS ---
+
+
     # Si le script process_video.py n'est pas utilisé ou renvoie None
     if not processed_file:
         print("⚠️ Le traitement vidéo a échoué ou n'a pas été effectué. Utilisation du fichier brut si disponible.")
