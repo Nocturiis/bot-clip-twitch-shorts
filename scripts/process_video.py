@@ -1,8 +1,22 @@
 # scripts/process_video.py
 from moviepy.editor import VideoFileClip, CompositeVideoClip, TextClip
-from moviepy.video.fx.all import crop, even_size, gaussian_blur # gaussian_blur est aussi dans fx.all
+from moviepy.video.fx.all import crop, even_size # Gardez crop et even_size ici
+# Supprimez la ligne : from moviepy.video.fx.vfx import gaussian_blur
+
+# >>> NOUVELLE IMPORTATION POUR LE FLOU GAUSSIEN <<<
+from skimage.filters import gaussian
+# >>> FIN NOUVELLE IMPORTATION <<<
+
 import os
 import sys
+
+# >>> NOUVELLE FONCTION POUR APPLIQUER LE FLOU À UNE IMAGE <<<
+def apply_gaussian_blur_to_frame(frame, sigma=15):
+    """Applique un flou gaussien à une image (tableau NumPy)."""
+    # multichannel=True est important pour les images couleur (RGB)
+    return gaussian(frame, sigma=sigma, multichannel=True)
+# >>> FIN NOUVELLE FONCTION <<<
+
 
 def trim_video_for_short(input_path, output_path, max_duration_seconds=60, clip_data=None):
     """
@@ -49,82 +63,69 @@ def trim_video_for_short(input_path, output_path, max_duration_seconds=60, clip_
         target_width, target_height = 1080, 1920 
         
         # --- Créer le clip de fond flou ---
-        # 1. Redimensionner le clip original pour qu'il remplisse complètement la zone 1080x1920.
-        #    Nous redimensionnons en fonction du côté le plus petit pour nous assurer de "remplir" l'écran,
-        #    puis nous recadrons l'excédent.
         bg_clip_temp = clip.copy()
 
         target_aspect_ratio = target_width / target_height
         clip_aspect_ratio = bg_clip_temp.w / bg_clip_temp.h
 
         if clip_aspect_ratio < target_aspect_ratio:
-            # L'original est plus "vertical" que la cible, on l'agrandit pour que sa largeur corresponde à target_width
             bg_clip_temp = bg_clip_temp.resize(width=target_width)
         else:
-            # L'original est plus "horizontal" ou de même ratio, on l'agrandit pour que sa hauteur corresponde à target_height
             bg_clip_temp = bg_clip_temp.resize(height=target_height)
 
-        # 2. Recadrer le clip agrandi au format cible (1080x1920) et le centrer
         blurred_bg_clip = bg_clip_temp.fx(crop, width=target_width, height=target_height, x_center=bg_clip_temp.w/2, y_center=bg_clip_temp.h/2)
         
-        # 3. Appliquer un flou gaussien intense
-        blurred_bg_clip = blurred_bg_clip.fx(gaussian_blur, sigma=15) # sigma=15 donne un bon flou
+        # >>> MODIFICATION ICI : UTILISATION DE FL_IMAGE AVEC SCALING <<<
+        # Appliquer un flou gaussien intense via scikit-image
+        # La fonction fl_image applique une fonction à chaque image du clip.
+        blurred_bg_clip = blurred_bg_clip.fl_image(lambda frame: apply_gaussian_blur_to_frame(frame, sigma=15))
+        # >>> FIN MODIFICATION <<<
 
         # --- Créer le clip principal (foreground) ---
         main_clip = clip.copy()
         
-        # Redimensionner le clip principal pour qu'il occupe 90% de la largeur cible (1080px).
-        # Cela permet une légère marge pour l'effet de fond flou et le texte.
-        main_video_display_width = int(target_width * 0.9) # Ex: 90% de 1080 = 972px
+        main_video_display_width = int(target_width * 0.9)
         main_clip = main_clip.resize(width=main_video_display_width)
 
-        # Assurez-vous que les dimensions du main_clip sont paires pour MoviePy
         main_clip = main_clip.fx(even_size)
         
         # --- Compositer les clips (fond flou + vidéo principale) ---
-        # Positionner le clip principal au centre du canvas total (1080x1920)
         video_with_blurred_bg = CompositeVideoClip([
-            blurred_bg_clip.set_position(("center", "center")), # Le fond remplit tout l'écran
-            main_clip.set_position(("center", "center")) # La vidéo principale est centrée
-        ], size=(target_width, target_height)) # Définir la taille finale de la composition
+            blurred_bg_clip.set_position(("center", "center")),
+            main_clip.set_position(("center", "center"))
+        ], size=(target_width, target_height))
 
 
         # --- Ajouter les textes (titre et nom du streamer) ---
         title_text = clip_data.get('title', 'Titre du clip')
         streamer_name = clip_data.get('broadcaster_name', 'Nom du streamer')
 
-        # Style de texte
-        font_path = "DejaVuSans-Bold" # Un exemple de police, assurez-vous qu'elle est disponible ou remplacez
-        try: # Teste si la police existe via Pillow (utilisée par MoviePy)
+        font_path = "DejaVuSans-Bold"
+        try:
             from PIL import ImageFont
             ImageFont.truetype(font_path, 10)
         except Exception:
             print(f"⚠️ Police '{font_path}' non trouvée ou non valide. Utilisation de la police par défaut de MoviePy.")
-            font_path = "sans" # Fallback to MoviePy default
+            font_path = "sans"
 
         text_color = "white"
         stroke_color = "black"
         stroke_width = 1.5
         
-        # Positionnement des textes : au-dessus du clip principal, dans la zone floue supérieure
-        # Calculez le haut de la vidéo principale centrée
         y_main_video_top = (video_with_blurred_bg.h - main_clip.h) / 2
         
-        # Titre du clip
         title_clip = TextClip(title_text, fontsize=40, color=text_color,
                               font=font_path, stroke_color=stroke_color, stroke_width=stroke_width,
-                              size=(target_width * 0.9, None), # Limite la largeur pour le wrap text
+                              size=(target_width * 0.9, None),
                               method='caption') \
                      .set_duration(video_with_blurred_bg.duration) \
-                     .set_position(("center", y_main_video_top - TextClip("A", fontsize=40, font=font_path).h - 20)) # 20px au-dessus
-
-        # Nom du streamer
+                     .set_position(("center", y_main_video_top - TextClip("A", fontsize=40, font=font_path).h - 20))
+        
         streamer_clip = TextClip(f"@{streamer_name}", fontsize=30, color=text_color,
                                  font=font_path, stroke_color=stroke_color, stroke_width=stroke_width) \
                         .set_duration(video_with_blurred_bg.duration) \
-                        .set_position(("center", title_clip.pos[1] + title_clip.h + 10)) # 10px en dessous du titre
+                        .set_position(("center", title_clip.pos[1] + title_clip.h + 10))
 
-        # Compositer toutes les couches (vidéo + textes)
         final_video = CompositeVideoClip([video_with_blurred_bg, title_clip, streamer_clip])
 
         # --- Écriture du fichier final ---
@@ -133,8 +134,8 @@ def trim_video_for_short(input_path, output_path, max_duration_seconds=60, clip_
                                      audio_codec="aac", 
                                      temp_audiofile='temp-audio.m4a', 
                                      remove_temp=True,
-                                     fps=clip.fps, # Maintenir le FPS original
-                                     logger=None) # Supprimer les logs excessifs de moviepy
+                                     fps=clip.fps,
+                                     logger=None)
         print(f"✅ Clip traité et sauvegardé : {output_path}")
         return output_path
             
@@ -145,8 +146,8 @@ def trim_video_for_short(input_path, output_path, max_duration_seconds=60, clip_
         return None
     finally:
         if 'clip' in locals() and clip is not None:
-            clip.close() # Libère les ressources du clip moviepy
+            clip.close()
         if 'video_with_blurred_bg' in locals() and video_with_blurred_bg is not None:
-            video_with_blurred_bg.close() # Libère les ressources de la composition intermédiaire
+            video_with_blurred_bg.close()
         if 'final_video' in locals() and final_video is not None:
-            final_video.close() # Libère les ressources du clip final
+            final_video.close()
