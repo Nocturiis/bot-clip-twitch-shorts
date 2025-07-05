@@ -28,21 +28,13 @@ jobs:
 
     - name: Configure ImageMagick policy
       run: |
-        # Chemin typique du fichier policy.xml sur Ubuntu
         POLICY_FILE="/etc/ImageMagick-6/policy.xml"
         
-        # Sauvegarder l'original (bonne pratique)
         sudo cp $POLICY_FILE ${POLICY_FILE}.bak
         
-        # Modifier la politique pour autoriser les opérations sur les fichiers et les formats
-        # Remplacer toutes les occurrences de rights="none" par rights="read|write"
-        # pour les domaines "disk", "file", "url", "https", "path".
-        # Utilisation de regex plus génériques pour s'assurer que toutes les lignes sont capturées.
-        sudo sed -i 's|<policy domain="\([^"]*\)" rights="none" pattern="\([^"]*\)"\/>|<policy domain="\1" rights="read|write" pattern="\2"\/>|g' $POLICY_FILE
+        # CORRECTION ICI : Utilisation de '#' comme délimiteur pour sed
+        sudo sed -i 's#<policy domain="\([^"]*\)" rights="none" pattern="\([^"]*\)"\/>#<policy domain="\1" rights="read|write" pattern="\2"\/>#g' $POLICY_FILE
         
-        # Spécifiquement, s'assurer que les restrictions sur les "coder" (formats d'image/texte) sont levées.
-        # MoviePy utilise souvent PNG et des fichiers temporaires.
-        # Cette commande supprime toute ligne de politique qui restreint un "coder" à "none".
         sudo sed -i '/<policy domain="coder" rights="none" pattern="[^"]*"\/>/d' $POLICY_FILE
         
         echo "ImageMagick policy updated."
