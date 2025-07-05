@@ -22,10 +22,34 @@ jobs:
       with:
         python-version: '3.9' # Ou une version compatible que vous préférez
 
-    - name: Install system dependencies (ffmpeg, ImageMagick) # Nom de l'étape mis à jour pour plus de clarté
+    - name: Install system dependencies (ffmpeg, ImageMagick)
       run: |
         sudo apt-get update
-        sudo apt-get install -y ffmpeg imagemagick # <-- AJOUTEZ 'imagemagick' ICI
+        sudo apt-get install -y ffmpeg imagemagick
+
+    - name: Configure ImageMagick policy # <-- NOUVELLE ÉTAPE ICI
+      run: |
+        # Chemin typique du fichier policy.xml sur Ubuntu
+        POLICY_FILE="/etc/ImageMagick-6/policy.xml"
+        
+        # Sauvegarder l'original (bonne pratique)
+        sudo cp $POLICY_FILE ${POLICY_FILE}.bak
+        
+        # Modifier la politique pour autoriser les opérations sur les fichiers et les formats
+        # On remplace les restrictions "disk", "file", "url", "https" et "path" par "none"
+        # et on s'assure que les formats "PNG" et "TMP" ne sont pas restreints.
+        sudo sed -i 's/<policy domain="disk" rights="none" pattern="*"\/>/<policy domain="disk" rights="read|write" pattern="*"\/>/g' $POLICY_FILE
+        sudo sed -i 's/<policy domain="file" rights="none" pattern="*"\/>/<policy domain="file" rights="read|write" pattern="*"\/>/g' $POLICY_FILE
+        sudo sed -i 's/<policy domain="url" rights="none" pattern="*"\/>/<policy domain="url" rights="read|write" pattern="*"\/>/g' $POLICY_FILE
+        sudo sed -i 's/<policy domain="https" rights="none" pattern="*"\/>/<policy domain="https" rights="read|write" pattern="*"\/>/g' $POLICY_FILE
+        sudo sed -i 's/<policy domain="path" rights="none" pattern="*"\/>/<policy domain="path" rights="read|write" pattern="*"\/>/g' $POLICY_FILE
+        # Assurez-vous que les politiques pour les formats PNG et TMP ne sont pas restrictives
+        # Si elles existent et sont restrictives, vous devrez peut-être les commenter ou les modifier.
+        # Par exemple, pour commenter une ligne: sudo sed -i '/<policy domain="coder" rights="none" pattern="PNG" \/>/s/^/#/' $POLICY_FILE
+        # Une approche plus simple est de s'assurer qu'il n'y a pas de restrictions "none" pour les "coder" en général.
+        # La ligne suivante supprime toute ligne qui restreint un "coder" à "none"
+        sudo sed -i '/<policy domain="coder" rights="none" pattern="[^"]*"\/>/d' $POLICY_FILE
+        echo "ImageMagick policy updated."
 
     - name: Install Python dependencies
       run: |
