@@ -92,16 +92,19 @@ def main():
         print("❌ Échec du téléchargement du clip. Fin du script.")
         sys.exit(1)
 
+    # Dans main.py, à l'intérieur de la fonction main()
+# ...
     # 5. Traiter/couper la vidéo pour s'assurer qu'elle est adaptée au Short
-    # C'est ici que process_video.py est appelé. Si vous n'utilisez pas moviepy/ffmpeg,
-    # vous pouvez simplement faire 'processed_file = downloaded_file'
     print("🎬 Traitement de la vidéo pour le format Short (découpage si nécessaire)...")
     processed_file = process_video.trim_video_for_short(
         input_path=downloaded_file,
         output_path=PROCESSED_CLIP_PATH,
         max_duration_seconds=get_top_clips.MAX_VIDEO_DURATION_SECONDS,
-        clip_data=selected_clip # Passe toutes les données du clip
+        clip_data=selected_clip,
+        enable_webcam_crop=False # Mettez à True si vous voulez activer le rognage de la webcam (nécessite get_people_coords fonctionnel)
     )
+# ...
+    
     
     # Si le script process_video.py n'est pas utilisé ou renvoie None
     if not processed_file:
