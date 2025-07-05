@@ -1,21 +1,16 @@
 # scripts/process_video.py
 from moviepy.editor import VideoFileClip, CompositeVideoClip, TextClip
-from moviepy.video.fx.all import crop, even_size # Gardez crop et even_size ici
-# Supprimez la ligne : from moviepy.video.fx.vfx import gaussian_blur
+from moviepy.video.fx.all import crop, even_size 
 
-# >>> NOUVELLE IMPORTATION POUR LE FLOU GAUSSIEN <<<
 from skimage.filters import gaussian
-# >>> FIN NOUVELLE IMPORTATION <<<
 
 import os
 import sys
 
-# >>> NOUVELLE FONCTION POUR APPLIQUER LE FLOU À UNE IMAGE <<<
 def apply_gaussian_blur_to_frame(frame, sigma=15):
     """Applique un flou gaussien à une image (tableau NumPy)."""
     # -1 indique que le dernier axe est celui des canaux (ex: [hauteur, largeur, canaux])
     return gaussian(frame, sigma=sigma, channel_axis=-1)
-# >>> FIN NOUVELLE FONCTION <<<
 
 
 def trim_video_for_short(input_path, output_path, max_duration_seconds=60, clip_data=None):
@@ -75,11 +70,10 @@ def trim_video_for_short(input_path, output_path, max_duration_seconds=60, clip_
 
         blurred_bg_clip = bg_clip_temp.fx(crop, width=target_width, height=target_height, x_center=bg_clip_temp.w/2, y_center=bg_clip_temp.h/2)
         
-        # >>> MODIFICATION ICI : UTILISATION DE FL_IMAGE AVEC SCALING <<<
         # Appliquer un flou gaussien intense via scikit-image
         # La fonction fl_image applique une fonction à chaque image du clip.
+        # CORRECTION ICI: la lambda doit accepter 'frame' ET 't'
         blurred_bg_clip = blurred_bg_clip.fl_image(lambda frame, t: apply_gaussian_blur_to_frame(frame, sigma=15))
-        # >>> FIN MODIFICATION <<<
 
         # --- Créer le clip principal (foreground) ---
         main_clip = clip.copy()
@@ -121,10 +115,11 @@ def trim_video_for_short(input_path, output_path, max_duration_seconds=60, clip_
                      .set_duration(video_with_blurred_bg.duration) \
                      .set_position(("center", y_main_video_top - TextClip("A", fontsize=40, font=font_path).h - 20))
         
+        # CORRECTION ICI: title_clip.pos() doit être appelé comme une fonction
         streamer_clip = TextClip(f"@{streamer_name}", fontsize=30, color=text_color,
                                  font=font_path, stroke_color=stroke_color, stroke_width=stroke_width) \
                         .set_duration(video_with_blurred_bg.duration) \
-                        .set_position(("center", title_clip.pos()[1] + title_clip.h + 10)) # <-- CORRECTION ICI
+                        .set_position(("center", title_clip.pos()[1] + title_clip.h + 10))
 
         final_video = CompositeVideoClip([video_with_blurred_bg, title_clip, streamer_clip])
 
