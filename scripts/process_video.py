@@ -2,10 +2,11 @@ import os
 import sys
 from typing import List, Optional
 
-from moviepy.editor import VideoFileClip, CompositeVideoClip, TextClip, ImageClip, ColorClip
+from moviepy.editor import VideoFileClip, CompositeVideoClip, TextClip, ImageClip, ColorClip, ImageSequenceClip
 from moviepy.video.fx.all import crop, even_size, resize as moviepy_resize
 from skimage.filters import gaussian
-import numpy as np # NOUVEL IMPORT : Ajoutez cette ligne
+import numpy as np
+from tqdm import tqdm # Pour la progression du traitement manuel des frames
 
 # ==============================================================================
 # ATTENTION : Vous DEVEZ implémenter cette fonction ou la remplacer par une logique
@@ -67,21 +68,10 @@ def crop_webcam(clip: VideoFileClip) -> Optional[VideoFileClip]:
     return crop(clip, x1=x1, y1=y1, x2=x, y2=y)
 
 
-import os
-import sys
-from typing import List, Optional
-
-from moviepy.editor import VideoFileClip, CompositeVideoClip, TextClip, ImageClip, ColorClip
-from moviepy.video.fx.all import crop, even_size, resize as moviepy_resize
-from skimage.filters import gaussian
-import numpy as np
-
-# ... (le code pour get_people_coords et crop_webcam reste inchangé) ...
-
-def apply_gaussian_blur_to_frame_explicit(frame, t, sigma=15): # Fonction nommée avec 't'
+def apply_gaussian_blur_to_frame_only(frame, sigma=15): # Pas de 't' ici, car utilisé manuellement
     """
     Applique un flou gaussien à une image (tableau NumPy).
-    Le paramètre 't' est obligatoire pour fl_image, même s'il n'est pas utilisé ici.
+    Conçu pour être appelé manuellement sur chaque frame.
     """
     try:
         if not isinstance(frame, np.ndarray):
@@ -90,11 +80,11 @@ def apply_gaussian_blur_to_frame_explicit(frame, t, sigma=15): # Fonction nommé
         if frame.dtype != np.float32 and frame.dtype != np.float64:
             frame = frame.astype(np.float64)
 
-        # Utilisation de channel_axis si l'image a des canaux (RVB/RGBA)
         return gaussian(frame, sigma=sigma, channel_axis=-1 if frame.ndim == 3 else None)
     except Exception as e:
-        print(f"❌ Erreur critique dans apply_gaussian_blur_to_frame_explicit: {e}")
-        raise # Rélève l'exception pour que l'erreur soit visible
+        print(f"❌ Erreur critique dans apply_gaussian_blur_to_frame_only: {e}")
+        # Ne pas relever l'exception ici, gérons-la dans la boucle pour tenter de continuer
+        return frame # Retourne le frame original non modifié en cas d'erreur
 
 
 def trim_video_for_short(input_path, output_path, max_duration_seconds=60, clip_data=None, enable_webcam_crop=False):
@@ -114,6 +104,7 @@ def trim_video_for_short(input_path, output_path, max_duration_seconds=60, clip_
         print(f"❌ Erreur : Le fichier d'entrée n'existe pas à {input_path}")
         return None
 
+    clip = None # Initialiser clip à None pour le finally
     try:
         clip = VideoFileClip(input_path)
         
@@ -141,9 +132,17 @@ def trim_video_for_short(input_path, output_path, max_duration_seconds=60, clip_
                 found_webcam_and_cropped = True
                 main_video_clip = moviepy_resize(cropped_webcam_clip, width=target_width * 0.9)
                 
-                blurred_bg_clip = moviepy_resize(clip, width=target_width)
-                # APPEL DE LA FONCTION NOMMÉE ICI
-                blurred_bg_clip = blurred_bg_clip.fl_image(lambda frame, t: apply_gaussian_blur_to_frame_explicit(frame, t, sigma=15))
+                # --- NOUVELLE LOGIQUE POUR LE FOND BLURRY ---
+                print("Appliquant le flou Gaussien au fond (méthode manuelle)...")
+                blurred_frames = []
+                # Utiliser tqdm pour avoir une barre de progression dans les logs
+                for frame in tqdm(clip.iter_frames(), total=int(clip.fps * clip.duration), desc="Appliquant le flou"):
+                    blurred_frames.append(apply_gaussian_blur_to_frame_only(frame, sigma=15))
+                
+                blurred_bg_clip = ImageSequenceClip(blurred_frames, fps=clip.fps)
+                blurred_bg_clip = moviepy_resize(blurred_bg_clip, width=target_width)
+                # ----------------------------------------------
+                
                 blurred_bg_clip = blurred_bg_clip.set_position("center").set_opacity(0.8)
 
                 all_video_elements.append(blurred_bg_clip)
@@ -159,8 +158,15 @@ def trim_video_for_short(input_path, output_path, max_duration_seconds=60, clip_
             else:
                 blurred_bg_clip = moviepy_resize(bg_clip_temp, width=target_width)
 
-            # APPEL DE LA FONCTION NOMMÉE ICI
-            blurred_bg_clip = blurred_bg_clip.fl_image(lambda frame, t: apply_gaussian_blur_to_frame_explicit(frame, t, sigma=15))
+            # --- NOUVELLE LOGIQUE POUR LE FOND BLURRY ---
+            print("Appliquant le flou Gaussien au fond (méthode manuelle)...")
+            blurred_frames = []
+            for frame in tqdm(blurred_bg_clip.iter_frames(), total=int(blurred_bg_clip.fps * blurred_bg_clip.duration), desc="Appliquant le flou"):
+                blurred_frames.append(apply_gaussian_blur_to_frame_only(frame, sigma=15))
+            
+            blurred_bg_clip = ImageSequenceClip(blurred_frames, fps=blurred_bg_clip.fps)
+            # ----------------------------------------------
+
             blurred_bg_clip = blurred_bg_clip.fx(crop, width=target_width, height=target_height, x_center=blurred_bg_clip.w/2, y_center=blurred_bg_clip.h/2)
             
             main_video_clip = clip.copy()
@@ -241,6 +247,7 @@ def trim_video_for_short(input_path, output_path, max_duration_seconds=60, clip_
     finally:
         if 'clip' in locals() and clip is not None:
             clip.close()
+        # Ces variables peuvent ne pas exister si le script échoue tôt
         if 'video_with_visuals' in locals() and video_with_visuals is not None:
             video_with_visuals.close()
         if 'final_video' in locals() and final_video is not None:
