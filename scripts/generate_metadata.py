@@ -73,7 +73,6 @@ Lien direct vers le clip : {clip_data.get('url', 'N/A')}
         "selfDeclaredMadeForKids": False, # Important pour les Shorts non destinés aux enfants
         "embeddable": True,
         "license": "youtube", # Standard YouTube License
-        ""
     }
 
     print(f"✅ Métadonnées générées.")
