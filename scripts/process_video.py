@@ -1,7 +1,6 @@
 # scripts/process_video.py
 from moviepy.editor import VideoFileClip, CompositeVideoClip, TextClip
-from moviepy.video.fx.all import crop, even_size # Retire resize et set_position de cette ligne
-from moviepy.video.fx.vfx import gaussian_blur # Importation spécifique pour le flou gaussien
+from moviepy.video.fx.all import crop, even_size, gaussian_blur # gaussian_blur est aussi dans fx.all
 import os
 import sys
 
