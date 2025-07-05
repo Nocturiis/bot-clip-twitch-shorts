@@ -78,7 +78,7 @@ def trim_video_for_short(input_path, output_path, max_duration_seconds=60, clip_
         # >>> MODIFICATION ICI : UTILISATION DE FL_IMAGE AVEC SCALING <<<
         # Appliquer un flou gaussien intense via scikit-image
         # La fonction fl_image applique une fonction à chaque image du clip.
-        blurred_bg_clip = blurred_bg_clip.fl_image(lambda frame: apply_gaussian_blur_to_frame(frame, sigma=15))
+        blurred_bg_clip = blurred_bg_clip.fl_image(lambda frame, t: apply_gaussian_blur_to_frame(frame, sigma=15))
         # >>> FIN MODIFICATION <<<
 
         # --- Créer le clip principal (foreground) ---
