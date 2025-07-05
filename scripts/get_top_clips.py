@@ -330,7 +330,7 @@ if __name__ == "__main__":
                 current_published_ids = []
 
         selected_clip = select_next_short_clip(token, 
-                                               num_clips_per_source=200, # Augmente le nombre de clips à fetch
+                                               num_clips_per_source=100, # Augmente le nombre de clips à fetch
                                                days_ago=1, # Recherche sur le dernier jour pour "le plus vu du jour"
                                                already_published_clip_ids=current_published_ids)
 
