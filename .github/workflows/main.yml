@@ -45,7 +45,7 @@ jobs:
         pip install -r requirements.txt
         pip list | grep -E "moviepy|scikit-image|Pillow|setuptools|wheel" # Ajoutez setuptools et wheel ici
 
-    # --- NOUVELLE ÉTAPE DE DÉBOGAGE : AFFICHE LE FICHIER process_video.py ---
+    # --- ÉTAPE DE DÉBOGAGE : AFFICHE LE FICHIER process_video.py ---
     - name: Print process_video.py content for debugging
       run: |
         echo "Content of scripts/process_video.py:"
@@ -71,3 +71,10 @@ jobs:
         TWITCH_CLIENT_SECRET: ${{ secrets.TWITCH_CLIENT_SECRET }}
         # Si vous utilisez GOOGLE_APPLICATION_CREDENTIALS, décommentez et ajustez:
         # GOOGLE_APPLICATION_CREDENTIALS: client_secret.json
+
+    - name: Upload processed video as artifact # NOUVELLE ÉTAPE : Sauvegarde la vidéo traitée
+      uses: actions/upload-artifact@v4
+      with:
+        name: processed-youtube-short
+        path: data/temp_processed_short.mp4 # Assurez-vous que ce chemin est correct
+        if-no-files-found: warn # Ne fait pas échouer le workflow si le fichier n'est pas trouvé
