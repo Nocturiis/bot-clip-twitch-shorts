@@ -173,9 +173,10 @@ def main():
     if os.path.exists(RAW_CLIP_PATH):
         os.remove(RAW_CLIP_PATH)
         print(f"  - Supprimé: {RAW_CLIP_PATH}")
-    if os.path.exists(PROCESSED_CLIP_PATH):
-        os.remove(PROCESSED_CLIP_PATH)
-        print(f"  - Supprimé: {PROCESSED_CLIP_PATH}")
+    # COMMENTEZ OU SUPPRIMEZ LA LIGNE SUIVANTE POUR GARDER LE FICHIER PROCESSED_CLIP_PATH
+    # if os.path.exists(PROCESSED_CLIP_PATH):
+    #     os.remove(PROCESSED_CLIP_PATH)
+    #     print(f"  - Supprimé: {PROCESSED_CLIP_PATH}")
 
     print("✅ Workflow terminé.")
 
