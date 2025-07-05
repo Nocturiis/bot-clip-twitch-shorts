@@ -3,8 +3,9 @@ import sys
 from typing import List, Optional
 
 from moviepy.editor import VideoFileClip, CompositeVideoClip, TextClip, ImageClip, ColorClip
-from moviepy.video.fx.all import crop, even_size, resize as moviepy_resize # Renommer pour éviter conflit
+from moviepy.video.fx.all import crop, even_size, resize as moviepy_resize
 from skimage.filters import gaussian
+import numpy as np # NOUVEL IMPORT : Ajoutez cette ligne
 
 # ==============================================================================
 # ATTENTION : Vous DEVEZ implémenter cette fonction ou la remplacer par une logique
@@ -68,8 +69,30 @@ def crop_webcam(clip: VideoFileClip) -> Optional[VideoFileClip]:
 
 def apply_gaussian_blur_to_frame(frame, sigma=15):
     """Applique un flou gaussien à une image (tableau NumPy)."""
-    # -1 indique que le dernier axe est celui des canaux (ex: [hauteur, largeur, canaux])
-    return gaussian(frame, sigma=sigma, channel_axis=-1)
+    try:
+        # AJOUTEZ CES LIGNES DE DÉBOGAGE (si elles sont encore là, sinon c'est bon)
+        # print(f"DEBUG: apply_gaussian_blur_to_frame appelée. Type frame: {type(frame)}, Shape frame: {frame.shape if hasattr(frame, 'shape') else 'N/A'}")
+        # print(f"DEBUG: Sigma: {sigma}")
+        
+        # --- CORRECTION CRUCIALE ICI ---
+        # S'assurer que le cadre est un tableau NumPy de type float.
+        # MoviePy peut parfois passer une image PIL ou un array de type int.
+        if not isinstance(frame, np.ndarray):
+            frame = np.array(frame) # Convertir en NumPy array si ce n'est pas déjà le cas
+
+        # Convertir en float avant d'appliquer le flou, si ce n'est pas déjà float
+        # et gérer les canaux si l'image est en niveaux de gris (un seul canal)
+        if frame.dtype != np.float32 and frame.dtype != np.float64:
+            frame = frame.astype(np.float64) # Utiliser float64 pour une meilleure précision
+
+        # Si l'image est en niveaux de gris (2 dimensions au lieu de 3 pour RGB),
+        # scikit-image gaussian peut gérer ça, mais il est bon de s'assurer de la forme.
+        # channel_axis=-1 fonctionne pour les images RGB/RGBA (HxWxChannels)
+        
+        return gaussian(frame, sigma=sigma, channel_axis=-1 if frame.ndim == 3 else None)
+    except Exception as e:
+        print(f"❌ Erreur dans apply_gaussian_blur_to_frame: {e}")
+        raise # Re-lève l'exception
 
 
 def trim_video_for_short(input_path, output_path, max_duration_seconds=60, clip_data=None, enable_webcam_crop=False):
