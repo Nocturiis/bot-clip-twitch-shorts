@@ -50,14 +50,19 @@ def generate_youtube_metadata(clip_data):
         title = title[:97].strip() + "..." 
 
     # Description du Short
+    # Correction ici: Appliquer .replace() sur les variables locales qui sont garanties non-None
+    clean_broadcaster_name_for_url = broadcaster_name.replace(' ', '')
+    clean_game_name_for_hashtag = game_name.replace(' ', '')
+
+
     description = f"""Les meilleurs moments de Twitch par {broadcaster_name} !
 Ce Short présente le clip le plus vu du jour : "{clip_title_raw}"
 
 N'oubliez pas de vous abonner pour plus de Shorts Twitch chaque jour !
-Chaîne de {broadcaster_name} : https://www.twitch.tv/{broadcaster_name.replace(' ', '')}
+Chaîne de {broadcaster_name} : https://www.twitch.tv/{clean_broadcaster_name_for_url}
 Lien direct vers le clip : {clip_data.get('url', 'N/A')}
 
-#Twitch #Shorts #ClipsTwitch #Gaming #{broadcaster_name.replace(' ', '')} #{game_name.replace(' ', '')}
+#Twitch #Shorts #ClipsTwitch #Gaming #{clean_broadcaster_name_for_url} #{clean_game_name_for_hashtag}
 """
     # YouTube limite les descriptions à 5000 caractères, ce qui est largement suffisant ici.
 
