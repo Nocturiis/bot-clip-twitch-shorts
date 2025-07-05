@@ -13,8 +13,8 @@ import sys
 # >>> NOUVELLE FONCTION POUR APPLIQUER LE FLOU À UNE IMAGE <<<
 def apply_gaussian_blur_to_frame(frame, sigma=15):
     """Applique un flou gaussien à une image (tableau NumPy)."""
-    # multichannel=True est important pour les images couleur (RGB)
-    return gaussian(frame, sigma=sigma, multichannel=True)
+    # -1 indique que le dernier axe est celui des canaux (ex: [hauteur, largeur, canaux])
+    return gaussian(frame, sigma=sigma, channel_axis=-1)
 # >>> FIN NOUVELLE FONCTION <<<
 
 
