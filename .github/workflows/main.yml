@@ -7,7 +7,7 @@ on:
     # Exécute le workflow tous les jours à 10h, 13h, 16h UTC
     # (ce qui correspond à 12h, 15h, 18h en heure d'été de Bruxelles/Paris)
     # Ajustez selon votre fuseau horaire.
-    - cron: '0 10,13,16 * * *' 
+    - cron: '0 10,13,16 * * *'
 
 jobs:
   publish-short:
@@ -22,14 +22,20 @@ jobs:
       with:
         python-version: '3.9' # Ou une version compatible que vous préférez
 
-    - name: Install dependencies
+    - name: Install system dependencies (ffmpeg, ImageMagick) # Nom de l'étape mis à jour pour plus de clarté
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y ffmpeg imagemagick # <-- AJOUTEZ 'imagemagick' ICI
+
+    - name: Install Python dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-        # Installer ffmpeg si vous utilisez process_video.py
-        sudo apt-get update
-        sudo apt-get install -y ffmpeg
-
+        # N'oubliez pas que votre requirements.txt doit contenir:
+        # moviepy==1.0.3
+        # scikit-image
+        # Pillow==9.5.0  <-- Très important pour le problème ANTIALIAS
+        
     - name: Create client_secret.json from secret
       run: |
         echo '${{ secrets.GOOGLE_CLIENT_SECRET_JSON }}' > client_secret.json
