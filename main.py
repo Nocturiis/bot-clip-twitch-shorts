@@ -77,7 +77,7 @@ def main():
     # 3. Sélectionner le prochain clip à publier
     selected_clip = get_top_clips.select_next_short_clip(
         access_token=twitch_token,
-        num_clips_per_source=200, # Augmenter pour avoir plus de candidats
+        num_clips_per_source=50, # Augmenter pour avoir plus de candidats
         days_ago=1, # Chercher les clips du dernier jour
         already_published_clip_ids=today_published_ids
     )
