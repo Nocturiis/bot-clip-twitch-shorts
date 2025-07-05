@@ -124,7 +124,7 @@ def trim_video_for_short(input_path, output_path, max_duration_seconds=60, clip_
         streamer_clip = TextClip(f"@{streamer_name}", fontsize=30, color=text_color,
                                  font=font_path, stroke_color=stroke_color, stroke_width=stroke_width) \
                         .set_duration(video_with_blurred_bg.duration) \
-                        .set_position(("center", title_clip.pos[1] + title_clip.h + 10))
+                        .set_position(("center", title_clip.pos()[1] + title_clip.h + 10)) # <-- CORRECTION ICI
 
         final_video = CompositeVideoClip([video_with_blurred_bg, title_clip, streamer_clip])
 
