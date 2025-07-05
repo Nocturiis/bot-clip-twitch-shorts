@@ -182,3 +182,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+    print("DEBUG: Le script main.py s'est terminé sans erreur Python.") # Nouvelle ligne de débogage
