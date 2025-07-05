@@ -16,7 +16,18 @@ def generate_youtube_metadata(clip_data):
     """
     print("📝 Génération des métadonnées vidéo (titre, description, tags)...")
 
-    broadcaster_name = clip_data.get("broadcaster_name", "Un streamer")
+    # Assurez-vous que broadcaster_name n'est jamais None avant d'appeler .replace()
+    # Si 'broadcaster_name' n'est pas dans clip_data ou sa valeur est None, utiliser "Un streamer"
+    broadcaster_name = clip_data.get("broadcaster_name")
+    if broadcaster_name is None:
+        broadcaster_name = "Un streamer"
+
+    # Assurez-vous que game_name n'est jamais None avant d'appeler .replace()
+    # Si 'game_name' n'est pas dans clip_data ou sa valeur est None, utiliser "Gaming"
+    game_name = clip_data.get("game_name")
+    if game_name is None:
+        game_name = "Gaming"
+
     clip_title_raw = clip_data.get("title", "Un moment épique")
     # Nettoyer le titre du clip pour éviter des caractères non souhaités dans le titre YouTube
     clip_title_clean = clip_title_raw.replace("!", "").replace("|", "").replace(":", "").strip()
@@ -48,7 +59,7 @@ N'oubliez pas de vous abonner pour plus de Shorts Twitch chaque jour !
 Chaîne de {broadcaster_name} : https://www.twitch.tv/{broadcaster_name}
 Lien direct vers le clip : {clip_data.get('url', 'N/A')}
 
-#Twitch #Shorts #ClipsTwitch #Gaming #{broadcaster_name.replace(' ', '')} #{clip_data.get('game_name', 'Gaming').replace(' ', '')}
+#Twitch #Shorts #ClipsTwitch #Gaming #{broadcaster_name.replace(' ', '')} #{game_name.replace(' ', '')}
 """
     # YouTube limite les descriptions à 5000 caractères, ce qui est largement suffisant ici.
 
@@ -56,7 +67,7 @@ Lien direct vers le clip : {clip_data.get('url', 'N/A')}
     tags = [
         "Twitch", "Shorts", "ClipsTwitch", "MeilleursMomentsTwitch",
         "Gaming", "Gameplay", "Drôle", "Épique", "Highlight",
-        broadcaster_name, clip_data.get("game_name", "Gaming"),
+        broadcaster_name, game_name, # Utilisez les variables `broadcaster_name` et `game_name` qui sont maintenant garanties non-None
         "TwitchFr", "ShortsGaming"
     ]
     # Supprimer les doublons et les tags vides/trop courts
@@ -89,10 +100,10 @@ if __name__ == "__main__":
     print("Pour un test direct, fournissez un dictionnaire de données de clip.")
     # Exemple de données de clip
     # test_clip_data = {
-    #     "broadcaster_name": "ZeratoR",
-    #     "title": "Un moment incroyable !",
-    #     "game_name": "League of Legends",
-    #     "url": "https://www.twitch.tv/zerator/clip/SomeTestClipID"
+    #       "broadcaster_name": "ZeratoR",
+    #       "title": "Un moment incroyable !",
+    #       "game_name": "League of Legends",
+    #       "url": "https://www.twitch.tv/zerator/clip/SomeTestClipID"
     # }
     # metadata = generate_youtube_metadata(test_clip_data)
     # print(json.dumps(metadata, indent=2, ensure_ascii=False))
