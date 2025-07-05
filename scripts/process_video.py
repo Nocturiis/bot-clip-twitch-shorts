@@ -67,32 +67,34 @@ def crop_webcam(clip: VideoFileClip) -> Optional[VideoFileClip]:
     return crop(clip, x1=x1, y1=y1, x2=x, y2=y)
 
 
-def apply_gaussian_blur_to_frame(frame, sigma=15):
-    """Applique un flou gaussien à une image (tableau NumPy)."""
+import os
+import sys
+from typing import List, Optional
+
+from moviepy.editor import VideoFileClip, CompositeVideoClip, TextClip, ImageClip, ColorClip
+from moviepy.video.fx.all import crop, even_size, resize as moviepy_resize
+from skimage.filters import gaussian
+import numpy as np
+
+# ... (le code pour get_people_coords et crop_webcam reste inchangé) ...
+
+def apply_gaussian_blur_to_frame_explicit(frame, t, sigma=15): # Fonction nommée avec 't'
+    """
+    Applique un flou gaussien à une image (tableau NumPy).
+    Le paramètre 't' est obligatoire pour fl_image, même s'il n'est pas utilisé ici.
+    """
     try:
-        # AJOUTEZ CES LIGNES DE DÉBOGAGE (si elles sont encore là, sinon c'est bon)
-        # print(f"DEBUG: apply_gaussian_blur_to_frame appelée. Type frame: {type(frame)}, Shape frame: {frame.shape if hasattr(frame, 'shape') else 'N/A'}")
-        # print(f"DEBUG: Sigma: {sigma}")
-        
-        # --- CORRECTION CRUCIALE ICI ---
-        # S'assurer que le cadre est un tableau NumPy de type float.
-        # MoviePy peut parfois passer une image PIL ou un array de type int.
         if not isinstance(frame, np.ndarray):
-            frame = np.array(frame) # Convertir en NumPy array si ce n'est pas déjà le cas
+            frame = np.array(frame)
 
-        # Convertir en float avant d'appliquer le flou, si ce n'est pas déjà float
-        # et gérer les canaux si l'image est en niveaux de gris (un seul canal)
         if frame.dtype != np.float32 and frame.dtype != np.float64:
-            frame = frame.astype(np.float64) # Utiliser float64 pour une meilleure précision
+            frame = frame.astype(np.float64)
 
-        # Si l'image est en niveaux de gris (2 dimensions au lieu de 3 pour RGB),
-        # scikit-image gaussian peut gérer ça, mais il est bon de s'assurer de la forme.
-        # channel_axis=-1 fonctionne pour les images RGB/RGBA (HxWxChannels)
-        
+        # Utilisation de channel_axis si l'image a des canaux (RVB/RGBA)
         return gaussian(frame, sigma=sigma, channel_axis=-1 if frame.ndim == 3 else None)
     except Exception as e:
-        print(f"❌ Erreur dans apply_gaussian_blur_to_frame: {e}")
-        raise # Re-lève l'exception
+        print(f"❌ Erreur critique dans apply_gaussian_blur_to_frame_explicit: {e}")
+        raise # Rélève l'exception pour que l'erreur soit visible
 
 
 def trim_video_for_short(input_path, output_path, max_duration_seconds=60, clip_data=None, enable_webcam_crop=False):
@@ -137,88 +139,67 @@ def trim_video_for_short(input_path, output_path, max_duration_seconds=60, clip_
             cropped_webcam_clip = crop_webcam(clip)
             if cropped_webcam_clip:
                 found_webcam_and_cropped = True
-                # Redimensionner la webcam rognée pour qu'elle soit la vidéo principale
-                main_video_clip = moviepy_resize(cropped_webcam_clip, width=target_width * 0.9) # 90% de la largeur du short
+                main_video_clip = moviepy_resize(cropped_webcam_clip, width=target_width * 0.9)
                 
-                # Créer le fond flou de la vidéo originale
-                # Cette partie peut être ajustée pour s'assurer que le fond flou est visible
-                # ou que le design convient à la webcam recadrée en haut/bas.
-                # Ici, on garde un fond flou de la vidéo originale derrière le short.
-                blurred_bg_clip = moviepy_resize(clip, width=target_width) # Redimensionner à la largeur cible
-                blurred_bg_clip = blurred_bg_clip.fl_image(lambda frame, t: apply_gaussian_blur_to_frame(frame, sigma=15))
-                blurred_bg_clip = blurred_bg_clip.set_position("center").set_opacity(0.8) # Peut ajuster l'opacité
+                blurred_bg_clip = moviepy_resize(clip, width=target_width)
+                # APPEL DE LA FONCTION NOMMÉE ICI
+                blurred_bg_clip = blurred_bg_clip.fl_image(lambda frame, t: apply_gaussian_blur_to_frame_explicit(frame, t, sigma=15))
+                blurred_bg_clip = blurred_bg_clip.set_position("center").set_opacity(0.8)
 
                 all_video_elements.append(blurred_bg_clip)
-                all_video_elements.append(main_video_clip.set_position(("center", "center"))) # Centrer la vidéo principale
+                all_video_elements.append(main_video_clip.set_position(("center", "center")))
             else:
                 print("La détection de webcam était activée mais n'a pas pu recadrer. Utilisation du mode fond flou.")
 
         if not found_webcam_and_cropped:
-            # Créer le clip de fond flou (mode par défaut si pas de webcam crop ou échec)
-            # D'abord, créer une version pour le fond flou
             bg_clip_temp = clip.copy()
             
-            # S'assurer que la base du fond flou est au moins aussi grande que le short
-            # et ensuite la flouter et la recadrer au format 9:16 si elle ne l'est pas
-            if bg_clip_temp.w / bg_clip_temp.h > target_width / target_height: # Plus large que le ratio short
+            if bg_clip_temp.w / bg_clip_temp.h > target_width / target_height:
                 blurred_bg_clip = moviepy_resize(bg_clip_temp, height=target_height)
-            else: # Plus grand que le ratio short
+            else:
                 blurred_bg_clip = moviepy_resize(bg_clip_temp, width=target_width)
 
-            # Appliquer le flou et s'assurer qu'il couvre toute la zone cible
-            blurred_bg_clip = blurred_bg_clip.fl_image(lambda frame, t: apply_gaussian_blur_to_frame(frame, sigma=15))
+            # APPEL DE LA FONCTION NOMMÉE ICI
+            blurred_bg_clip = blurred_bg_clip.fl_image(lambda frame, t: apply_gaussian_blur_to_frame_explicit(frame, t, sigma=15))
             blurred_bg_clip = blurred_bg_clip.fx(crop, width=target_width, height=target_height, x_center=blurred_bg_clip.w/2, y_center=blurred_bg_clip.h/2)
             
-            # --- Créer le clip principal (foreground) ---
             main_video_clip = clip.copy()
-            main_video_display_width = int(target_width * 0.9) # La vidéo principale prend 90% de la largeur
+            main_video_display_width = int(target_width * 0.9)
             main_video_clip = moviepy_resize(main_video_clip, width=main_video_display_width)
-            main_video_clip = main_video_clip.fx(even_size) # S'assurer d'avoir des dimensions paires
+            main_video_clip = main_video_clip.fx(even_size)
 
             all_video_elements.append(blurred_bg_clip.set_position(("center", "center")))
             all_video_elements.append(main_video_clip.set_position(("center", "center")))
         
-        # Créer un clip composite avec les éléments vidéo
         video_with_visuals = CompositeVideoClip(all_video_elements, size=(target_width, target_height)).set_duration(duration)
 
-        # --- Ajouter les textes (titre et nom du streamer) ---
         title_text = clip_data.get('title', 'Titre du clip')
         streamer_name = clip_data.get('broadcaster_name', 'Nom du streamer')
 
-        font_path = "DejaVuSans-Bold" # Assurez-vous que cette police est disponible sur le runner
+        font_path = "DejaVuSans-Bold"
         try:
             from PIL import ImageFont
             ImageFont.truetype(font_path, 10)
         except Exception:
             print(f"⚠️ Police '{font_path}' non trouvée ou non valide. Utilisation de la police par défaut de MoviePy.")
-            font_path = "sans" # Fallback vers une police par défaut de MoviePy
+            font_path = "sans"
 
         text_color = "white"
         stroke_color = "black"
         stroke_width = 1.5
         
-        # Positionnement basé sur la vidéo principale si elle a été redimensionnée
-        # (video_with_visuals.h - main_video_clip.h) / 2
-        
-        # Calcul des positions pour les textes (au-dessus et en dessous de la vidéo principale)
-        # Ces valeurs doivent être ajustées si le contenu principal est la webcam recadrée
-        
-        # Position pour le titre (au-dessus de la vidéo principale)
         title_clip = TextClip(title_text, fontsize=40, color=text_color,
                                 font=font_path, stroke_color=stroke_color, stroke_width=stroke_width,
-                                size=(target_width * 0.9, None), # Limiter la largeur du texte
+                                size=(target_width * 0.9, None),
                                 method='caption') \
                      .set_duration(duration) \
-                     .set_position(("center", 50)) # Position plus fixe en haut, ajuster si besoin
+                     .set_position(("center", 50))
 
-        # Position pour le nom du streamer (en bas de la vidéo principale)
         streamer_clip = TextClip(f"@{streamer_name}", fontsize=30, color=text_color,
                                  font=font_path, stroke_color=stroke_color, stroke_width=stroke_width) \
                         .set_duration(duration) \
-                        .set_position(("center", target_height - 100)) # Position plus fixe en bas, ajuster si besoin
+                        .set_position(("center", target_height - 100))
 
-        # --- AJOUTER L'ICONE TWITCH (optionnel, si vous avez l'image) ---
-        # Si vous avez un fichier 'twitch_icon.png' dans un dossier 'assets' à la racine du projet
         script_dir = os.path.dirname(os.path.abspath(__file__))
         assets_dir = os.path.abspath(os.path.join(script_dir, '..', 'assets'))
         twitch_icon_path = os.path.join(assets_dir, 'twitch_icon.png')
@@ -227,9 +208,8 @@ def trim_video_for_short(input_path, output_path, max_duration_seconds=60, clip_
         if os.path.exists(twitch_icon_path):
             try:
                 twitch_icon_clip = ImageClip(twitch_icon_path, duration=duration)
-                twitch_icon_clip = moviepy_resize(twitch_icon_clip, width=80) # Redimensionner l'icône
-                # Positionner l'icône à côté du nom du streamer (exemple)
-                twitch_icon_clip = twitch_icon_clip.set_position((title_clip.pos[0] - twitch_icon_clip.w - 10, title_clip.pos[1] + 5)) # Ajuster selon le positionnement du titre
+                twitch_icon_clip = moviepy_resize(twitch_icon_clip, width=80)
+                twitch_icon_clip = twitch_icon_clip.set_position((title_clip.pos[0] - twitch_icon_clip.w - 10, title_clip.pos[1] + 5))
                 print("✅ Icône Twitch ajoutée.")
             except Exception as e:
                 print(f"⚠️ Erreur lors de l'ajout de l'icône Twitch : {e}. L'icône ne sera pas ajoutée.")
@@ -237,15 +217,12 @@ def trim_video_for_short(input_path, output_path, max_duration_seconds=60, clip_
         else:
             print("⚠️ Fichier 'twitch_icon.png' non trouvé dans le dossier 'assets'. L'icône ne sera pas ajoutée.")
 
-
-        # Composition finale de tous les éléments
         final_elements = [video_with_visuals, title_clip, streamer_clip]
         if twitch_icon_clip:
             final_elements.append(twitch_icon_clip)
 
         final_video = CompositeVideoClip(final_elements)
 
-        # --- Écriture du fichier final ---
         final_video.write_videofile(output_path,
                                      codec="libx264",
                                      audio_codec="aac",
