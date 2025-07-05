@@ -41,12 +41,9 @@ jobs:
 
     - name: Install Python dependencies
       run: |
-        python -m pip install --upgrade pip
+        python -m pip install --upgrade pip setuptools wheel
         pip install -r requirements.txt
-        # --- NOUVELLE ÉTAPE DE DÉBOGAGE : AFFICHE LES VERSIONS INSTALLÉES ---
-        echo "Installed Python packages versions:"
-        pip list | grep -E "moviepy|scikit-image|Pillow"
-        # --- FIN DE L'ÉTAPE DE DÉBOGAGE ---
+        pip list | grep -E "moviepy|scikit-image|Pillow|setuptools|wheel" # Ajoutez setuptools et wheel ici
 
     # --- NOUVELLE ÉTAPE DE DÉBOGAGE : AFFICHE LE FICHIER process_video.py ---
     - name: Print process_video.py content for debugging
