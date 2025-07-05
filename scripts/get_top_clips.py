@@ -175,7 +175,7 @@ def fetch_clips(access_token, params, source_type, source_id):
             print(f"    Contenu brut de la réponse: {response.content.decode()}")
         return []
 
-def select_next_short_clip(access_token, num_clips_per_source=100, days_ago=1, already_published_clip_ids=None):
+def select_next_short_clip(access_token, num_clips_per_source=50, days_ago=1, already_published_clip_ids=None):
     """
     Fetches and selects the best available clip for a YouTube Short,
     avoiding previously published clips and respecting duration constraints.
@@ -330,7 +330,7 @@ if __name__ == "__main__":
                 current_published_ids = []
 
         selected_clip = select_next_short_clip(token, 
-                                               num_clips_per_source=100, # Augmente le nombre de clips à fetch
+                                               num_clips_per_source=50, # Augmente le nombre de clips à fetch
                                                days_ago=1, # Recherche sur le dernier jour pour "le plus vu du jour"
                                                already_published_clip_ids=current_published_ids)
 
