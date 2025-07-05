@@ -5,3 +5,4 @@ google-auth-httplib2
 google-auth-oauthlib
 moviepy==1.0.3
 scikit-image
+Pillow==9.5.0
