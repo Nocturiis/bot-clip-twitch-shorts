@@ -70,7 +70,7 @@ def trim_video_for_short(input_path, output_path, max_duration_seconds=60, clip_
     """
     Traite une vidéo pour le format Short (9:16) :
     - Coupe si elle dépasse la durée maximale.
-    - Ajoute un fond noir (au lieu d'un fond flou).
+    - Ajoute un fond personnalisé (ou noir si l'image n'est pas trouvée).
     - Ajoute le titre du clip, le nom du streamer et une icône Twitch.
     """
     print(f"✂️ Traitement vidéo : {input_path}")
@@ -104,35 +104,51 @@ def trim_video_for_short(input_path, output_path, max_duration_seconds=60, clip_
 
         all_video_elements = [] # Liste pour tous les éléments vidéo à composer
 
+        # --- Configuration du fond personnalisé ---
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        assets_dir = os.path.abspath(os.path.join(script_dir, '..', 'assets'))
+        custom_background_image_path = os.path.join(assets_dir, 'fond_short.png') # <-- Ton fichier d'image !
+
+        background_clip = None # Initialisation
+
+        if not os.path.exists(custom_background_image_path):
+            print(f"❌ Erreur : L'image de fond personnalisée '{os.path.basename(custom_background_image_path)}' est introuvable dans '{assets_dir}'.")
+            print("Utilisation d'un fond noir par défaut.")
+            background_clip = ColorClip(size=(target_width, target_height), color=(0,0,0)).set_duration(duration)
+        else:
+            print(f"✅ Création d'un fond personnalisé avec l'image : {os.path.basename(custom_background_image_path)}")
+            try:
+                background_clip = ImageClip(custom_background_image_path)
+                # Redimensionne l'image pour qu'elle corresponde exactement à la résolution cible
+                background_clip = background_clip.resize(newsize=(target_width, target_height))
+                # Définit la durée de l'image de fond pour qu'elle dure toute la vidéo
+                background_clip = background_clip.set_duration(duration)
+            except Exception as e:
+                print(f"❌ Erreur lors du chargement ou du traitement de l'image de fond : {e}")
+                print("Utilisation d'un fond noir par défaut.")
+                background_clip = ColorClip(size=(target_width, target_height), color=(0,0,0)).set_duration(duration)
+        # --- Fin de la configuration du fond personnalisé ---
+
+
         found_webcam_and_cropped = False
         if enable_webcam_crop:
             cropped_webcam_clip = crop_webcam(clip)
             if cropped_webcam_clip:
                 found_webcam_and_cropped = True
-                main_video_clip = moviepy_resize(cropped_webcam_clip, width=target_width * 0.9)
-                
-                # --- FOND NOIR au lieu de flou ---
-                print("Création d'un fond noir pour la vidéo.")
-                background_clip = ColorClip(size=(target_width, target_height), color=(0,0,0)).set_duration(duration)
-                # ---------------------------------
+                main_video_clip = moviepy_resize(cropped_webcam_clip, width=target_width * 0.95) # Facteur de zoom 0.95
                 
                 all_video_elements.append(background_clip)
                 all_video_elements.append(main_video_clip.set_position(("center", "center")))
             else:
-                print("La détection de webcam était activée mais n'a pas pu recadrer. Utilisation du mode fond noir.")
+                print("La détection de webcam était activée mais n'a pas pu recadrer. Utilisation du mode fond personnalisé.")
 
         if not found_webcam_and_cropped:
-            # --- FOND NOIR au lieu de flou ---
-            print("Création d'un fond noir pour la vidéo.")
-            background_clip = ColorClip(size=(target_width, target_height), color=(0,0,0)).set_duration(duration)
-            # ---------------------------------
-            
+            all_video_elements.append(background_clip.set_position(("center", "center")))
             main_video_clip = clip.copy()
-            main_video_display_width = int(target_width * 1.4)
+            main_video_display_width = int(target_width * 0.95) # Facteur de zoom 0.95
             main_video_clip = moviepy_resize(main_video_clip, width=main_video_display_width)
             main_video_clip = main_video_clip.fx(even_size)
 
-            all_video_elements.append(background_clip.set_position(("center", "center")))
             all_video_elements.append(main_video_clip.set_position(("center", "center")))
         
         video_with_visuals = CompositeVideoClip(all_video_elements, size=(target_width, target_height)).set_duration(duration)
