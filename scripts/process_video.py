@@ -135,7 +135,7 @@ def trim_video_for_short(input_path, output_path, max_duration_seconds=60, clip_
             cropped_webcam_clip = crop_webcam(clip)
             if cropped_webcam_clip:
                 found_webcam_and_cropped = True
-                main_video_clip = moviepy_resize(cropped_webcam_clip, width=target_width * 0.95) # Facteur de zoom 0.95
+                main_video_clip = moviepy_resize(cropped_webcam_clip, width=target_width * 1.4) # Facteur de zoom 1.4
                 
                 all_video_elements.append(background_clip)
                 all_video_elements.append(main_video_clip.set_position(("center", "center")))
@@ -145,7 +145,7 @@ def trim_video_for_short(input_path, output_path, max_duration_seconds=60, clip_
         if not found_webcam_and_cropped:
             all_video_elements.append(background_clip.set_position(("center", "center")))
             main_video_clip = clip.copy()
-            main_video_display_width = int(target_width * 0.95) # Facteur de zoom 0.95
+            main_video_display_width = int(target_width * 1.4) # Facteur de zoom 1.4
             main_video_clip = moviepy_resize(main_video_clip, width=main_video_display_width)
             main_video_clip = main_video_clip.fx(even_size)
 

@@ -78,12 +78,25 @@ def upload_youtube_short(youtube_service, video_path, metadata):
         print(f"❌ Erreur : Le fichier vidéo n'existe pas à {video_path}")
         return None
 
+    # Assurez-vous que les tags sont une liste et joignez-les en une seule chaîne
+    tags_list = metadata.get('tags', [])
+    if isinstance(tags_list, list):
+        # Nettoyer chaque tag (supprimer les espaces en début/fin) et filtrer les tags vides
+        processed_tags = [tag.strip() for tag in tags_list if tag.strip()]
+        tags_string = ", ".join(processed_tags)
+    else:
+        # Si pour une raison quelconque ce n'est pas une liste (ce qui ne devrait plus arriver),
+        # utilisez la valeur telle quelle.
+        tags_string = str(tags_list) # Convertir en string pour éviter d'autres erreurs
+
     body = {
         'snippet': {
             'title': metadata['title'],
             'description': metadata['description'],
-            'tags': metadata['tags'].split(', ') if metadata['tags'] else [],
-            'categoryId': metadata['categoryId']
+            'tags': tags_string, # CORRECTION ICI : Utilise la chaîne de tags
+            'categoryId': metadata['categoryId'],
+            'defaultLanguage': 'fr', # Ajout de la langue par défaut
+            'defaultAudioLanguage': 'fr' # Ajout de la langue audio par défaut
         },
         'status': {
             'privacyStatus': metadata['privacyStatus'],
@@ -117,8 +130,13 @@ def upload_youtube_short(youtube_service, video_path, metadata):
         return video_id
 
     except HttpError as e:
-        print(f"❌ Erreur lors de l'upload YouTube : {e}")
-        print(f"Détails de l'erreur: {e.content.decode()}")
+        error_details = json.loads(e.content.decode('utf-8'))
+        print(f"❌ Erreur lors de l'upload YouTube (HttpError) : {e}")
+        print(f"Détails de l'erreur API : {error_details}")
+        if 'error' in error_details and 'errors' in error_details['error']:
+            for err in error_details['error']['errors']:
+                print(f"  Raison: {err.get('reason')}")
+                print(f"  Message: {err.get('message')}")
         return None
     except Exception as e:
         print(f"❌ Une erreur inattendue est survenue lors de l'upload : {e}")
@@ -142,7 +160,7 @@ if __name__ == "__main__":
     #     #     test_metadata = {
     #     #         "title": "Test Short par mon script Python",
     #     #         "description": "Ceci est un test d'upload de Short via un script Python.",
-    #     #         "tags": "test, python, youtube, short",
+    #     #         "tags": ["test", "python", "youtube", "short"], # Doit être une liste ici pour le test
     #     #         "categoryId": "20", # Gaming
     #     #         "privacyStatus": "private", # Mettez en privé pour les tests
     #     #         "selfDeclaredMadeForKids": False,
