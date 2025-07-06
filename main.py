@@ -148,51 +148,55 @@ def main():
     print("-------------------------------------------------\n")
 
 # 7. Authentifier et Uploader sur YouTube
-    youtube_service = upload_youtube.get_authenticated_service()
-    if not youtube_service:
-        print("❌ Impossible d'authentifier le service YouTube. Fin du script.")
-        sys.exit(1)
+    youtube_service = None # Initialiser à None
+    try:
+        youtube_service = upload_youtube.get_authenticated_service()
+    except Exception as e:
+        print(f"❌ Erreur lors de l'authentification YouTube : {e}")
+        # Ne pas quitter le script ici, on veut quand même l'artefact
+        # sys.exit(1) # <-- SUPPRIME OU COMMENTE CETTE LIGNE
 
-    # DÉCOMMENTE CETTE LIGNE :
-    youtube_video_id = upload_youtube.upload_youtube_short(youtube_service, processed_file, youtube_metadata)
+    youtube_video_id = None # Initialiser pour le cas où l'authentification ou l'upload échoue
 
-    # Cette ligne est maintenant inutile et peut être supprimée ou commentée,
-    # car youtube_video_id est défini juste au-dessus par l'appel à la fonction d'upload réelle.
-    # youtube_video_id = None # Simule qu'aucun ID n'a été retourné par l'upload
-    # print("⏩ Upload YouTube désactivé par le code (ligne commentée). Pas d'upload effectué.") # Tu peux supprimer ou modifier cette ligne
-
-    if youtube_video_id: # Cette condition va maintenant fonctionner comme prévu
-        print(f"🎉 Short YouTube publié avec succès ! ID: {youtube_video_id}")
-        # 8. Mettre à jour l'historique des publications
+    if youtube_service: # Seulement si l'authentification a réussi
+        print("📤 Démarrage de l'upload YouTube...") # Message avant l'upload
         try:
-            add_to_history(history, selected_clip['id'], youtube_video_id)
-            save_published_history(history)
-            print(f"✅ Clip '{selected_clip['id']}' ajouté à l'historique des publications.")
-        except Exception as e:
-            print(f"❌ Erreur lors de l'ajout/sauvegarde à l'historique après un upload réel: {e}")
-    else:
-        # Ce bloc sera exécuté si l'upload_youtube.upload_youtube_short retourne None (signifiant un échec d'upload)
-        print("❌ L'upload YouTube a échoué ou n'a pas retourné d'ID. Le Short n'a pas été publié sur YouTube.")
-        # OPTIONNEL: Si tu veux que le workflow échoue si l'upload YouTube échoue, tu peux ajouter sys.exit(1) ici
-        # sys.exit(1)
-        # Supprime ou commente ces lignes de simulation si tu ne veux plus simuler l'historique en cas d'échec
-        # try:
-        #     add_to_history(history, selected_clip['id'], "SIMULATED_YOUTUBE_ID")
-        #     save_published_history(history)
-        #     print(f"✅ Clip '{selected_clip['id']}' SIMULÉ ajouté à l'historique des publications (mode débogage).")
-        # except Exception as e:
-        #     print(f"❌ Erreur lors de l'ajout/sauvegarde SIMULÉE à l'historique : {e}")
+            youtube_video_id = upload_youtube.upload_youtube_short(youtube_service, processed_file, youtube_metadata)
+            
+            if youtube_video_id:
+                print(f"🎉 Short YouTube publié avec succès ! ID: {youtube_video_id}")
+                # 8. Mettre à jour l'historique des publications
+                try:
+                    add_to_history(history, selected_clip['id'], youtube_video_id)
+                    save_published_history(history)
+                    print(f"✅ Clip '{selected_clip['id']}' ajouté à l'historique des publications.")
+                except Exception as e:
+                    print(f"❌ Erreur lors de l'ajout/sauvegarde à l'historique après un upload réel: {e}")
+            else:
+                # Cela signifie que upload_youtube.upload_youtube_short a retourné None
+                print("❌ L'upload YouTube a échoué ou n'a pas retourné d'ID. Le Short n'a pas été publié sur YouTube.")
+                # IMPORTANT : Ne pas sys.exit(1) ici pour permettre l'upload de l'artefact
+                # Tu peux ajouter une logique pour ne pas marquer le clip comme "publié" dans l'historique local
+                # si l'upload YouTube réel a échoué.
+                print("ℹ️ Le script continuera pour la création de l'artefact.")
 
+        except Exception as e: # Capture toute exception lors de l'upload
+            print(f"❌ Une erreur inattendue est survenue pendant l'upload YouTube : {e}")
+            print("ℹ️ Le script continuera pour la création de l'artefact.")
+    else:
+        print("❌ Service YouTube non authentifié. L'upload YouTube est ignoré.")
+        print("ℹ️ Le script continuera pour la création de l'artefact.")
 
     # 9. Nettoyage des fichiers temporaires
+    # Tu veux laisser le PROCESSED_CLIP_PATH pour l'artefact, donc garde-le commenté ou supprime la ligne
     print("🧹 Nettoyage des fichiers temporaires...")
     if os.path.exists(RAW_CLIP_PATH):
         os.remove(RAW_CLIP_PATH)
         print(f"  - Supprimé: {RAW_CLIP_PATH}")
-    # COMMENTEZ OU SUPPRIMEZ LA LIGNE SUIVANTE POUR GARDER LE FICHIER PROCESSED_CLIP_PATH
-    # if os.path.exists(PROCESSED_CLIP_PATH):
+    # if os.path.exists(PROCESSED_CLIP_PATH): # <-- C'est cette ligne que tu veux garder commentée ou supprimer
     #     os.remove(PROCESSED_CLIP_PATH)
     #     print(f"  - Supprimé: {PROCESSED_CLIP_PATH}")
+
 
     print("✅ Workflow terminé.")
 
