@@ -33,11 +33,18 @@ def load_published_history():
     except json.JSONDecodeError:
         print("⚠️ Fichier d'historique des publications corrompu. Création d'un nouveau.")
         return {}
+    except Exception as e:
+        print(f"❌ Erreur inattendue lors du chargement de l'historique : {e}")
+        return {}
 
 def save_published_history(history_data):
     """Sauvegarde l'historique des clips publiés."""
-    with open(PUBLISHED_HISTORY_FILE, 'w', encoding='utf-8') as f:
-        json.dump(history_data, f, indent=2, ensure_ascii=False)
+    try:
+        with open(PUBLISHED_HISTORY_FILE, 'w', encoding='utf-8') as f:
+            json.dump(history_data, f, indent=2, ensure_ascii=False)
+    except Exception as e:
+        print(f"❌ Erreur inattendue lors de la sauvegarde de l'historique : {e}")
+
 
 def get_today_published_ids(history_data):
     """Retourne les IDs des clips publiés aujourd'hui."""
@@ -156,16 +163,21 @@ def main():
     if youtube_video_id: # Cette condition ne sera plus jamais vraie tant que la ligne d'upload est commentée
         print(f"🎉 Short YouTube publié avec succès ! ID: {youtube_video_id}")
         # 8. Mettre à jour l'historique des publications (ne sera pas appelé si l'upload est désactivé)
-        add_to_history(history, selected_clip['id'], youtube_video_id)
-        save_published_history(history)
-        print(f"✅ Clip '{selected_clip['id']}' ajouté à l'historique des publications.")
+        try: # Ajout d'un try-except pour la gestion de l'historique
+            add_to_history(history, selected_clip['id'], youtube_video_id)
+            save_published_history(history)
+            print(f"✅ Clip '{selected_clip['id']}' ajouté à l'historique des publications.")
+        except Exception as e:
+            print(f"❌ Erreur lors de l'ajout/sauvegarde à l'historique après un upload (simulé ou réel): {e}")
     else:
         print("ℹ️ L'upload YouTube n'a pas été effectué ou a échoué (mode débogage).")
-        # Ne pas sys.exit(1) ici car c'est un comportement attendu en mode débogage
-        # Si vous voulez tester l'historique SANS upload, vous pouvez décommenter les 3 lignes ci-dessous
-        # add_to_history(history, selected_clip['id'], "SIMULATED_YOUTUBE_ID")
-        # save_published_history(history)
-        # print(f"✅ Clip '{selected_clip['id']}' SIMULÉ ajouté à l'historique des publications.")
+        # Activation de la simulation d'historique pour le débogage
+        try:
+            add_to_history(history, selected_clip['id'], "SIMULATED_YOUTUBE_ID")
+            save_published_history(history)
+            print(f"✅ Clip '{selected_clip['id']}' SIMULÉ ajouté à l'historique des publications (mode débogage).")
+        except Exception as e:
+            print(f"❌ Erreur lors de l'ajout/sauvegarde SIMULÉE à l'historique : {e}")
 
 
     # 9. Nettoyage des fichiers temporaires
@@ -182,4 +194,4 @@ def main():
 
 if __name__ == "__main__":
     main()
-    print("DEBUG: Le script main.py s'est terminé sans erreur Python.") # Nouvelle ligne de débogage
+    print("DEBUG: Le script main.py s'est terminé sans erreur Python.") # Ligne de débogage finale
