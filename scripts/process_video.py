@@ -168,28 +168,40 @@ def trim_video_for_short(input_path, output_path, max_duration_seconds=60, clip_
         stroke_color = "black"
         stroke_width = 1.5
         
+        # Ajustements ici pour le titre
+        # Augmente la valeur Y pour faire descendre le texte du titre vers le centre
         title_clip = TextClip(title_text, fontsize=70, color=text_color,
-                                font=font_path, stroke_color=stroke_color, stroke_width=stroke_width,
-                                size=(target_width * 0.9, None),
-                                method='caption') \
+                              font=font_path, stroke_color=stroke_color, stroke_width=stroke_width,
+                              size=(target_width * 0.9, None), # Permet au texte de s'étendre sur 90% de la largeur
+                              method='caption') \
                      .set_duration(duration) \
-                     .set_position(("center", 50))
+                     .set_position(("center", int(target_height * 0.08))) # Par exemple, 8% de la hauteur du haut
 
+        # Ajustements ici pour le nom du streamer
+        # Diminue la valeur soustraite pour faire remonter le texte du streamer vers le centre
+        # (Si target_height - 100 le mettait hors champ, 100 est une valeur trop grande à soustraire).
+        # On va viser une position relative au bas de l'écran, mais en s'assurant qu'il est bien visible.
         streamer_clip = TextClip(f"@{streamer_name}", fontsize=40, color=text_color,
                                  font=font_path, stroke_color=stroke_color, stroke_width=stroke_width) \
                         .set_duration(duration) \
-                        .set_position(("center", target_height - 100))
+                        .set_position(("center", int(target_height * 0.92) - 40)) # Par exemple, 92% de la hauteur, puis ajuster pour la taille de la police
 
-        script_dir = os.path.dirname(os.path.abspath(__file__))
-        assets_dir = os.path.abspath(os.path.join(script_dir, '..', 'assets'))
-        twitch_icon_path = os.path.join(assets_dir, 'twitch_icon.png')
-
+        # Calculer la position de l'icône Twitch par rapport au titre (déjà corrigé)
+        # Il est crucial que title_clip ait sa position finale au moment du calcul de l'icône.
+        # title_clip.pos[0] est la coordonnée X du coin supérieur gauche du titre
+        # title_clip.pos[1] est la coordonnée Y du coin supérieur gauche du titre
         twitch_icon_clip = None
         if os.path.exists(twitch_icon_path):
             try:
                 twitch_icon_clip = ImageClip(twitch_icon_path, duration=duration)
                 twitch_icon_clip = moviepy_resize(twitch_icon_clip, width=80)
-                twitch_icon_clip = twitch_icon_clip.set_position((title_clip.pos[0] - twitch_icon_clip.w - 10, title_clip.pos[1] + 5))
+                
+                # Calcul basé sur la position du titre pour être à sa gauche, légèrement ajusté verticalement
+                # (title_clip.w est la largeur du titre, title_clip.h est la hauteur du titre)
+                icon_x = title_clip.pos[0] - twitch_icon_clip.w - 10 # 10 pixels de marge à gauche du titre
+                icon_y = title_clip.pos[1] + (title_clip.h / 2) - (twitch_icon_clip.h / 2) # Centré verticalement avec le titre
+
+                twitch_icon_clip = twitch_icon_clip.set_position((icon_x, icon_y))
                 print("✅ Icône Twitch ajoutée.")
             except Exception as e:
                 print(f"⚠️ Erreur lors de l'ajout de l'icône Twitch : {e}. L'icône ne sera pas ajoutée.")
@@ -204,12 +216,12 @@ def trim_video_for_short(input_path, output_path, max_duration_seconds=60, clip_
         final_video = CompositeVideoClip(final_elements)
 
         final_video.write_videofile(output_path,
-                                     codec="libx264",
-                                     audio_codec="aac",
-                                     temp_audiofile='temp-audio.m4a',
-                                     remove_temp=True,
-                                     fps=clip.fps,
-                                     logger=None)
+                                    codec="libx264",
+                                    audio_codec="aac",
+                                    temp_audiofile='temp-audio.m4a',
+                                    remove_temp=True,
+                                    fps=clip.fps,
+                                    logger=None)
         print(f"✅ Clip traité et sauvegardé : {output_path}")
         return output_path
             
