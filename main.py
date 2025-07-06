@@ -149,16 +149,16 @@ def main():
 
     # 7. Authentifier et Uploader sur YouTube
     # LA LIGNE SUIVANTE EST MISE EN COMMENTAIRE POUR DÉSACTIVER L'UPLOAD
-    # youtube_service = upload_youtube.get_authenticated_service()
-    # if not youtube_service:
-    #     print("❌ Impossible d'authentifier le service YouTube. Fin du script.")
-    #     sys.exit(1)
+    youtube_service = upload_youtube.get_authenticated_service()
+    if not youtube_service:
+        print("❌ Impossible d'authentifier le service YouTube. Fin du script.")
+        sys.exit(1)
 
     # youtube_video_id = upload_youtube.upload_youtube_short(youtube_service, processed_file, youtube_metadata)
 
     # Remplacé par une simulation d'upload pour le débogage
-    youtube_video_id = None # Simule qu'aucun ID n'a été retourné par l'upload
-    print("⏩ Upload YouTube désactivé par le code (ligne commentée). Pas d'upload effectué.")
+    # youtube_video_id = None # Simule qu'aucun ID n'a été retourné par l'upload
+    # print("⏩ Upload YouTube désactivé par le code (ligne commentée). Pas d'upload effectué.")
 
     if youtube_video_id: # Cette condition ne sera plus jamais vraie tant que la ligne d'upload est commentée
         print(f"🎉 Short YouTube publié avec succès ! ID: {youtube_video_id}")
