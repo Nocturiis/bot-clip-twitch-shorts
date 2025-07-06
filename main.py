@@ -147,37 +147,41 @@ def main():
     print(f"Chemin de la vidéo finale: {processed_file}")
     print("-------------------------------------------------\n")
 
-    # 7. Authentifier et Uploader sur YouTube
-    # LA LIGNE SUIVANTE EST MISE EN COMMENTAIRE POUR DÉSACTIVER L'UPLOAD
+# 7. Authentifier et Uploader sur YouTube
     youtube_service = upload_youtube.get_authenticated_service()
     if not youtube_service:
         print("❌ Impossible d'authentifier le service YouTube. Fin du script.")
         sys.exit(1)
 
-    # youtube_video_id = upload_youtube.upload_youtube_short(youtube_service, processed_file, youtube_metadata)
+    # DÉCOMMENTE CETTE LIGNE :
+    youtube_video_id = upload_youtube.upload_youtube_short(youtube_service, processed_file, youtube_metadata)
 
-    # Remplacé par une simulation d'upload pour le débogage
+    # Cette ligne est maintenant inutile et peut être supprimée ou commentée,
+    # car youtube_video_id est défini juste au-dessus par l'appel à la fonction d'upload réelle.
     # youtube_video_id = None # Simule qu'aucun ID n'a été retourné par l'upload
-    # print("⏩ Upload YouTube désactivé par le code (ligne commentée). Pas d'upload effectué.")
+    # print("⏩ Upload YouTube désactivé par le code (ligne commentée). Pas d'upload effectué.") # Tu peux supprimer ou modifier cette ligne
 
-    if youtube_video_id: # Cette condition ne sera plus jamais vraie tant que la ligne d'upload est commentée
+    if youtube_video_id: # Cette condition va maintenant fonctionner comme prévu
         print(f"🎉 Short YouTube publié avec succès ! ID: {youtube_video_id}")
-        # 8. Mettre à jour l'historique des publications (ne sera pas appelé si l'upload est désactivé)
-        try: # Ajout d'un try-except pour la gestion de l'historique
+        # 8. Mettre à jour l'historique des publications
+        try:
             add_to_history(history, selected_clip['id'], youtube_video_id)
             save_published_history(history)
             print(f"✅ Clip '{selected_clip['id']}' ajouté à l'historique des publications.")
         except Exception as e:
-            print(f"❌ Erreur lors de l'ajout/sauvegarde à l'historique après un upload (simulé ou réel): {e}")
+            print(f"❌ Erreur lors de l'ajout/sauvegarde à l'historique après un upload réel: {e}")
     else:
-        print("ℹ️ L'upload YouTube n'a pas été effectué ou a échoué (mode débogage).")
-        # Activation de la simulation d'historique pour le débogage
-        try:
-            add_to_history(history, selected_clip['id'], "SIMULATED_YOUTUBE_ID")
-            save_published_history(history)
-            print(f"✅ Clip '{selected_clip['id']}' SIMULÉ ajouté à l'historique des publications (mode débogage).")
-        except Exception as e:
-            print(f"❌ Erreur lors de l'ajout/sauvegarde SIMULÉE à l'historique : {e}")
+        # Ce bloc sera exécuté si l'upload_youtube.upload_youtube_short retourne None (signifiant un échec d'upload)
+        print("❌ L'upload YouTube a échoué ou n'a pas retourné d'ID. Le Short n'a pas été publié sur YouTube.")
+        # OPTIONNEL: Si tu veux que le workflow échoue si l'upload YouTube échoue, tu peux ajouter sys.exit(1) ici
+        # sys.exit(1)
+        # Supprime ou commente ces lignes de simulation si tu ne veux plus simuler l'historique en cas d'échec
+        # try:
+        #     add_to_history(history, selected_clip['id'], "SIMULATED_YOUTUBE_ID")
+        #     save_published_history(history)
+        #     print(f"✅ Clip '{selected_clip['id']}' SIMULÉ ajouté à l'historique des publications (mode débogage).")
+        # except Exception as e:
+        #     print(f"❌ Erreur lors de l'ajout/sauvegarde SIMULÉE à l'historique : {e}")
 
 
     # 9. Nettoyage des fichiers temporaires
