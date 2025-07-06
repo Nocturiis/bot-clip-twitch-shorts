@@ -17,8 +17,14 @@ def generate_youtube_metadata(clip_data):
     print("📝 Génération des métadonnées vidéo (titre, description, tags)...")
 
     # Assurez-vous que broadcaster_name et game_name ne sont jamais None
+    # Utilisez .get() avec une valeur par défaut, puis vérifiez si la valeur obtenue est None
     broadcaster_name = clip_data.get("broadcaster_name", "Un streamer")
+    if broadcaster_name is None: # Nouvelle vérification si la valeur est None
+        broadcaster_name = "Un streamer"
+
     game_name = clip_data.get("game_name", "Gaming")
+    if game_name is None: # Nouvelle vérification si la valeur est None
+        game_name = "Gaming"
 
     clip_title_raw = clip_data.get("title", "Un moment épique")
     # Nettoyer le titre du clip pour éviter des caractères non souhaités dans le titre YouTube
@@ -52,6 +58,7 @@ def generate_youtube_metadata(clip_data):
     # Description du Short
     # Correction ici: Appliquer .replace() sur les variables locales qui sont garanties non-None
     clean_broadcaster_name_for_url = broadcaster_name.replace(' ', '')
+    # La ligne suivante était la cause de l'erreur si game_name était None
     clean_game_name_for_hashtag = game_name.replace(' ', '')
 
 
@@ -118,7 +125,7 @@ if __name__ == "__main__":
     test_clip_data = {
         "broadcaster_name": "ToneEUW",
         "title": "Je l'ai eu !!!!",
-        "game_name": "League of Legends",
+        "game_name": None, # Teste le cas où game_name est explicitement None
         "url": "https://www.twitch.tv/toneeuw/clip/CloudySpotlessHippoThisIsSparta-o7pRPUkEfKHBA5KC"
     }
     metadata = generate_youtube_metadata(test_clip_data)
