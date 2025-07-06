@@ -18,87 +18,84 @@ TWITCH_API_URL = "https://api.twitch.tv/helix/clips"
 
 # --- PARAMÈTRES DE FILTRAGE ET DE SÉLECTION POUR LES SHORTS ---
 
-# NOUVELLE OPTION DE CONFIGURATION :
-# Si TRUE, le script privilégiera strictement les clips de BROADCASTER_IDS avant d'ajouter des clips de GAME_IDS.
-# Si FALSE, tous les clips (broadcasters et jeux) seront collectés puis triés globalement par vues.
-PRIORITIZE_BROADCASTERS_STRICTLY = False
-
-# NOUVEAU PARAMÈTRE : Nombre maximal de clips par streamer dans la sélection finale (pour éviter qu'un seul streamer domine si beaucoup de clips sont éligibles).
-MAX_CLIPS_PER_BROADCASTER_IN_FINAL_SELECTION = 1 # Pour un short unique, on veut généralement 1 clip max par streamer par exécution
+# Ces paramètres de priorisation et de limite par streamer sont déplacés ou simplifiés
+# car la logique de sélection finale est maintenant dans main.py qui va itérer sur cette liste complète.
+# PRIORITIZE_BROADCASTERS_STRICTLY = False # Peut être supprimé ou ignoré
+# MAX_CLIPS_PER_BROADCASTER_IN_FINAL_SELECTION = 1 # Peut être supprimé ou ignoré
 
 # Liste des IDs de jeux pour lesquels vous voulez récupérer des clips.
 GAME_IDS = [
-    "509670",          # Just Chatting
-    "21779",           # League of Legends
-    "32982",           # Grand Theft Auto V
-    "512965",          # VALORANT
-    "518018",          # Minecraft
-    "513143",          # Fortnite
-    "32982",           # Grand Theft Auto V
-    "32399",           # Counter-Strike
-    "511224",          # Apex Legends
-    "506520",          # Dota 2
-    "490422",          # Dead by Daylight
-    "514873",          # Call of Duty: Warzone
-    "65768",           # Rocket League
-    "518883",          # EA Sports FC 24
-    "180025139",       # Mario Kart 8 Deluxe
-    "280721",          # Teamfight Tactics
-    "488427",          # World of Warcraft
-    "1467408070",      # Rust
-    "32213",           # Hearthstone
-    "138585",          # Chess
-    "493306",          # Overwatch 2
-    "509660",          # Special Events
-    "1063683693",      # Pokémon Scarlet and Violet
-    "1678120671",      # Baldur's Gate 3
-    "27471",           # osu!
-    "507316",          # Phasmophobia
-    "19326",           # The Elder Scrolls V: Skyrim
-    "512710",          # Fall Guys
-    "1285324545",      # Lethal Company
+    "509670",            # Just Chatting
+    "21779",             # League of Legends
+    "32982",             # Grand Theft Auto V
+    "512965",            # VALORANT
+    "518018",            # Minecraft
+    "513143",            # Fortnite
+    "32982",             # Grand Theft Auto V
+    "32399",             # Counter-Strike
+    "511224",            # Apex Legends
+    "506520",            # Dota 2
+    "490422",            # Dead by Daylight
+    "514873",            # Call of Duty: Warzone
+    "65768",             # Rocket League
+    "518883",            # EA Sports FC 24
+    "180025139",         # Mario Kart 8 Deluxe
+    "280721",            # Teamfight Tactics
+    "488427",            # World of Warcraft
+    "1467408070",        # Rust
+    "32213",             # Hearthstone
+    "138585",            # Chess
+    "493306",            # Overwatch 2
+    "509660",            # Special Events
+    "1063683693",        # Pokémon Scarlet and Violet
+    "1678120671",        # Baldur's Gate 3
+    "27471",             # osu!
+    "507316",            # Phasmophobia
+    "19326",             # The Elder Scrolls V: Skyrim
+    "512710",            # Fall Guys
+    "1285324545",        # Lethal Company
     # Ajoutez d'autres IDs si nécessaire
 ]
 
 # Liste des IDs de streamers francophones populaires.
 BROADCASTER_IDS = [
-    "80716629",        # Inoxtag
-    "737048563",       # Anyme023"
-    "52130765",        # Squeezie (chaîne principale)
-    "22245231",        # SqueezieLive (sa chaîne secondaire pour le live)
-    "41719107",        # ZeratoR
-    "24147592",        # Gotaga
-    "134966333",       # Kameto
-    "737048563",       # AmineMaTue
-    "496105401",       # byilhann
-    "887001013",       # Nico_la
-    "60256640",        # Flamby
-    "253195796",       # helydia
-    "175560856",       # Hctuan
-    "57404419",        # Ponce
-    "38038890",        # Antoine Daniel
-    "48480373",        # MisterMV
-    "19075728",        # Sardoche
-    "54546583",        # Locklear
-    "50290500",        # Domingo
-    "57402636",        # RebeuDeter
-    "47565457",        # Joyca
-    "153066440",       # Michou
-    "41487980",        # Pauleta_Twitch (Pfut)
-    "31429949",        # LeBouseuh
-    "46296316",        # Maghla
-    "49896798",        # Chowh1
-    "49749557",        # Jiraya
-    "53696803",        # Wankil Studio (Laink et Terracid - chaîne principale)
-    "72366922",        # Laink (ID individuel, généralement couvert par Wankil Studio)
-    "129845722",       # Terracid (ID individuel, généralement couvert par Wankil Studio)
-    "51950294",        # Mynthos
-    "53140510",        # Etoiles
-    "134812328",       # LittleBigWhale
-    "180237751",       # Mister V (l'artiste/youtubeur, différent de MisterMV)
-    "55787682",        # Shaunz
-    "142436402",       # Ultia
-    "20875990",        # LCK_France (pour les clips de la ligue de LoL française)
+    "80716629",          # Inoxtag
+    "737048563",         # Anyme023"
+    "52130765",          # Squeezie (chaîne principale)
+    "22245231",          # SqueezieLive (sa chaîne secondaire pour le live)
+    "41719107",          # ZeratoR
+    "24147592",          # Gotaga
+    "134966333",         # Kameto
+    "737048563",         # AmineMaTue
+    "496105401",         # byilhann
+    "887001013",         # Nico_la
+    "60256640",          # Flamby
+    "253195796",         # helydia
+    "175560856",         # Hctuan
+    "57404419",          # Ponce
+    "38038890",          # Antoine Daniel
+    "48480373",          # MisterMV
+    "19075728",          # Sardoche
+    "54546583",          # Locklear
+    "50290500",          # Domingo
+    "57402636",          # RebeuDeter
+    "47565457",          # Joyca
+    "153066440",         # Michou
+    "41487980",          # Pauleta_Twitch (Pfut)
+    "31429949",          # LeBouseuh
+    "46296316",          # Maghla
+    "49896798",          # Chowh1
+    "49749557",          # Jiraya
+    "53696803",          # Wankil Studio (Laink et Terracid - chaîne principale)
+    "72366922",          # Laink (ID individuel, généralement couvert par Wankil Studio)
+    "129845722",         # Terracid (ID individuel, généralement couvert par Wankil Studio)
+    "51950294",          # Mynthos
+    "53140510",          # Etoiles
+    "134812328",         # LittleBigWhale
+    "180237751",         # Mister V (l'artiste/youtubeur, différent de MisterMV)
+    "55787682",          # Shaunz
+    "142436402",         # Ultia
+    "20875990",          # LCK_France (pour les clips de la ligue de LoL française)
     # Ajoutez d'autres IDs vérifiés ici
 ]
 
@@ -106,7 +103,6 @@ BROADCASTER_IDS = [
 CLIP_LANGUAGE = "fr" # Code ISO 639-1 pour le français
 
 # PARAMÈTRES POUR LA DURÉE CUMULÉE MINIMALE ET MAXIMALE DU SHORT FINAL
-# --- MODIFIÉ ICI ---
 MIN_VIDEO_DURATION_SECONDS = 15   # Minimum 15 secondes pour un Short
 MAX_VIDEO_DURATION_SECONDS = 180  # Maximum 180 secondes (3 minutes) pour un Short
 
@@ -154,7 +150,7 @@ def fetch_clips(access_token, params, source_type, source_id):
                 "thumbnail_url": clip.get("thumbnail_url"),
                 "title": clip.get("title"),
                 # CORRECTION ICI: Utilise "view_count" au lieu de "viewer_count"
-                "viewer_count": clip.get("view_count", 0), 
+                "viewer_count": clip.get("view_count", 0),  # Clé correcte de l'API Twitch
                 "broadcaster_id": clip.get("broadcaster_id"),
                 "broadcaster_name": clip.get("broadcaster_name"),
                 "game_name": clip.get("game_name"),
@@ -175,31 +171,30 @@ def fetch_clips(access_token, params, source_type, source_id):
             print(f"    Contenu brut de la réponse: {response.content.decode()}")
         return []
 
-def select_next_short_clip(access_token, num_clips_per_source=50, days_ago=1, already_published_clip_ids=None):
+def get_eligible_short_clips(access_token, num_clips_per_source=50, days_ago=1, already_published_clip_ids=None):
     """
-    Fetches and selects the best available clip for a YouTube Short,
-    avoiding previously published clips and respecting duration constraints.
-    Returns the selected clip (dict) or None if no suitable clip is found.
+    Récupère les clips populaires des chaînes spécifiées et des jeux,
+    filtre ceux déjà publiés et ceux qui ne respectent pas les contraintes de durée/langue.
+    Retourne une liste de clips éligibles, triés par popularité (vues).
     """
     if already_published_clip_ids is None:
         already_published_clip_ids = []
 
-    # --- LE MESSAGE CI-DESSOUS SERA MIS À JOUR AUTOMATIQUEMENT ---
-    print(f"📊 Recherche du prochain clip pour un Short ({MIN_VIDEO_DURATION_SECONDS}-{MAX_VIDEO_DURATION_SECONDS}s) pour les dernières {days_ago} jour(s)...")
-    print(f"Clips déjà publiés aujourd'hui: {len(already_published_clip_ids)} IDs")
+    print(f"📊 Recherche de clips éligibles ({MIN_VIDEO_DURATION_SECONDS}-{MAX_VIDEO_DURATION_SECONDS}s) pour les dernières {days_ago} jour(s)...")
+    print(f"Clips déjà publiés aujourd'hui (transmis) : {len(already_published_clip_ids)} IDs.")
             
     end_date = datetime.now(timezone.utc)
     start_date = end_date - timedelta(days=days_ago)
             
-    seen_clip_ids = set(already_published_clip_ids) # Utilise un set pour une recherche rapide des doublons
-
+    # Utilise un set pour une recherche rapide et pour éviter les doublons lors de la collecte
+    seen_clip_ids = set(already_published_clip_ids) 
     all_potential_clips = []
 
     # --- Phase de collecte ---
-    # Collecte tous les clips des broadcasters prioritaires
-    print("\n--- Collecte des clips des streamers prioritaires ---")
+    # Collecte des clips des broadcasters
+    print("\n--- Collecte des clips des streamers spécifiés ---")
     for broadcaster_id in BROADCASTER_IDS:
-        print(f"  - Recherche de clips pour le broadcaster_id: {broadcaster_id}")
+        # print(f"  - Recherche de clips pour le streamer: {broadcaster_id}") # Moins verbeux
         params = {
             "first": num_clips_per_source,
             "started_at": start_date.strftime('%Y-%m-%dT%H:%M:%SZ'),
@@ -210,15 +205,18 @@ def select_next_short_clip(access_token, num_clips_per_source=50, days_ago=1, al
         }
         clips = fetch_clips(access_token, params, "broadcaster_id", broadcaster_id)
         for clip in clips:
-            if clip["id"] not in seen_clip_ids:
+            # Filtrer par langue et durée dès la collecte pour optimiser
+            if (clip["id"] not in seen_clip_ids and 
+                clip.get('language') == CLIP_LANGUAGE and
+                MIN_VIDEO_DURATION_SECONDS <= clip.get('duration', 0.0) <= MAX_VIDEO_DURATION_SECONDS):
                 all_potential_clips.append(clip)
                 seen_clip_ids.add(clip["id"]) # Ajoute à 'seen' pour éviter les doublons globaux
-    print(f"✅ Collecté {len(all_potential_clips)} clips uniques de streamers prioritaires (hors déjà publiés).")
+    print(f"✅ Collecté {len(all_potential_clips)} clips uniques éligibles (streamers).")
 
-    # Collecte tous les clips des jeux (excluant ceux déjà vus des broadcasters et déjà publiés)
+    # Collecte des clips des jeux (excluant ceux déjà vus des broadcasters et déjà publiés)
     print("\n--- Collecte des clips des jeux spécifiés ---")
     for game_id in GAME_IDS:
-        print(f"  - Recherche de clips pour le game_id: {game_id}")
+        # print(f"  - Recherche de clips pour le jeu: {game_id}") # Moins verbeux
         params = {
             "first": num_clips_per_source,
             "started_at": start_date.strftime('%Y-%m-%dT%H:%M:%SZ'),
@@ -229,123 +227,63 @@ def select_next_short_clip(access_token, num_clips_per_source=50, days_ago=1, al
         }
         clips = fetch_clips(access_token, params, "game_id", game_id)
         for clip in clips:
-            if clip["id"] not in seen_clip_ids:
+            # Filtrer par langue et durée dès la collecte pour optimiser
+            if (clip["id"] not in seen_clip_ids and 
+                clip.get('language') == CLIP_LANGUAGE and
+                MIN_VIDEO_DURATION_SECONDS <= clip.get('duration', 0.0) <= MAX_VIDEO_DURATION_SECONDS):
                 all_potential_clips.append(clip)
                 seen_clip_ids.add(clip["id"])
-    print(f"✅ Collecté {len(all_potential_clips)} clips uniques au total (streamers + jeux, hors déjà publiés).")
+    print(f"✅ Collecté un total de {len(all_potential_clips)} clips uniques éligibles (streamers + jeux).")
 
-    # Filtrer et trier pour la sélection finale du Short
-    eligible_clips = []
-    
-    # 1. Filtrer par langue (sécurité) et par durée
-    for clip in all_potential_clips:
-        if (clip.get('language') == CLIP_LANGUAGE and
-            MIN_VIDEO_DURATION_SECONDS <= clip.get('duration', 0.0) <= MAX_VIDEO_DURATION_SECONDS):
-            eligible_clips.append(clip)
-    
-    if not eligible_clips:
-        # --- LE MESSAGE CI-DESSOUS SERA MIS À JOUR AUTOMATIQUEMENT ---
-        print(f"⚠️ Aucun clip éligible (durée entre {MIN_VIDEO_DURATION_SECONDS} et {MAX_VIDEO_DURATION_SECONDS}s, non publié) trouvé.")
-        return None
+    # Trier tous les clips éligibles par vues (plus populaire en premier)
+    all_potential_clips.sort(key=lambda x: x.get('viewer_count', 0), reverse=True)
 
-    # 2. Appliquer la logique de priorisation des streamers et la limite par streamer
-    final_candidates = []
-    clips_added_per_broadcaster_temp = {} # Temporel pour cette exécution de sélection
-
-    if PRIORITIZE_BROADCASTERS_STRICTLY:
-        print("\nMode de sélection: PRIORITAIRE (streamers d'abord).")
-        sorted_priority_clips = sorted([c for c in eligible_clips if c.get('broadcaster_id') in BROADCASTER_IDS], 
-                                       key=lambda x: x.get('viewer_count', 0), reverse=True)
-        
-        for clip in sorted_priority_clips:
-            broadcaster_id = clip.get('broadcaster_id')
-            if clips_added_per_broadcaster_temp.get(broadcaster_id, 0) < MAX_CLIPS_PER_BROADCASTER_IN_FINAL_SELECTION:
-                final_candidates.append(clip)
-                clips_added_per_broadcaster_temp[broadcaster_id] = clips_added_per_broadcaster_temp.get(broadcaster_id, 0) + 1
-            # On ne break pas ici car on peut avoir plusieurs streamers prioritaires
-
-        # Ajouter les clips de jeux si besoin, en respectant aussi les limites par streamer
-        sorted_game_clips = sorted([c for c in eligible_clips if c.get('broadcaster_id') not in BROADCASTER_IDS],
-                                   key=lambda x: x.get('viewer_count', 0), reverse=True)
-        for clip in sorted_game_clips:
-            broadcaster_id = clip.get('broadcaster_id')
-            if clips_added_per_broadcaster_temp.get(broadcaster_id, 0) < MAX_CLIPS_PER_BROADCASTER_IN_FINAL_SELECTION:
-                final_candidates.append(clip)
-                clips_added_per_broadcaster_temp[broadcaster_id] = clips_added_per_broadcaster_temp.get(broadcaster_id, 0) + 1
-    else: # Logique classique: tout trier par vues, puis appliquer la limite par streamer
-        print("\nMode de sélection: CLASSIQUE (tous les clips triés par vues).")
-        sorted_all_clips = sorted(eligible_clips, key=lambda x: x.get('viewer_count', 0), reverse=True)
-        
-        for clip in sorted_all_clips:
-            broadcaster_id = clip.get('broadcaster_id')
-            if clips_added_per_broadcaster_temp.get(broadcaster_id, 0) < MAX_CLIPS_PER_BROADCASTER_IN_FINAL_SELECTION:
-                final_candidates.append(clip)
-                clips_added_per_broadcaster_temp[broadcaster_id] = clips_added_per_broadcaster_temp.get(broadcaster_id, 0) + 1
-            # On ne break pas car on veut le meilleur candidat général selon les vues et limites par streamer
-
-    # Trier les candidats finaux une dernière fois par vues pour s'assurer que le "meilleur" est en tête
-    final_candidates.sort(key=lambda x: x.get('viewer_count', 0), reverse=True)
-
-    if final_candidates:
-        selected_clip = final_candidates[0]
-        print("\n--- CLIP SÉLECTIONNÉ POUR LE SHORT ---")
-        print(f"Title: {selected_clip.get('title', 'N/A')}")
-        print(f"Broadcaster: {selected_clip.get('broadcaster_name', 'N/A')}")
-        print(f"Views: {selected_clip.get('viewer_count', 0)}")
-        print(f"Duration: {selected_clip.get('duration', 'N/A')}s")
-        print(f"Language: {selected_clip.get('language', 'N/A')}")
-        print(f"URL: {selected_clip.get('url', 'N/A')}")
-        print("---------------------------------------\n")
-        return selected_clip
+    if not all_potential_clips:
+        print(f"⚠️ Aucun clip éligible trouvé après collecte et filtrage (durée entre {MIN_VIDEO_DURATION_SECONDS} et {MAX_VIDEO_DURATION_SECONDS}s, non publié).")
+        return [] # Retourne une liste vide
     else:
-        print("⚠️ Aucun clip adapté pour un Short n'a pu être sélectionné (tous les clips éligibles étaient déjà publiés ou ne respectaient pas les contraintes de durée/streamer).")
-        return None
+        print(f"Found {len(all_potential_clips)} clips éligibles au total, triés par vues.")
+        # Optionnel: afficher le top 5 des candidats pour débogage
+        # print("Top 5 candidats:")
+        # for i, clip in enumerate(all_potential_clips[:5]):
+        #     print(f"  {i+1}. {clip['title']} par {clip['broadcaster_name']} ({clip['viewer_count']} vues, {clip['duration']}s)")
 
+    return all_potential_clips
+
+# Le bloc if __name__ == "__main__": peut être laissé tel quel ou simplifié pour un test rapide
 if __name__ == "__main__":
     token = get_twitch_access_token()
     if token:
-        # EXEMPLE D'UTILISATION :
-        # Pour simuler l'historique, vous chargeriez ceci depuis un fichier
-        # Par exemple, pour le premier run de la journée, cette liste serait vide.
-        # Pour les runs suivants, elle contiendrait les IDs des clips déjà publiés.
-        # Après la publication réussie d'un clip, vous devriez ajouter son ID à cette liste et la sauvegarder.
-        
-        # Charger l'historique (simulé ici)
+        # Simule l'historique de publication pour le test
         published_clips_log_path = os.path.join("data", "published_shorts_history.json")
         current_published_ids = []
         if os.path.exists(published_clips_log_path):
             try:
                 with open(published_clips_log_path, "r", encoding="utf-8") as f:
-                    # Assurez-vous que le fichier ne contient pas d'anciennes entrées si vous voulez une rotation quotidienne
-                    # Ici, pour la démo, on charge tout. Dans un vrai cas, filtrez par date.
-                    data = json.load(f)
-                    # Supposons que l'historique est un dictionnaire par jour ou une liste d'IDs récents
-                    # Pour simplifier, on prend juste les IDs d'une liste plate
-                    if isinstance(data, list):
-                        current_published_ids = data
-                    elif isinstance(data, dict) and "clips" in data:
-                        current_published_ids = [c["id"] for c in data["clips"]]
+                    history_data = json.load(f)
+                    today_str = datetime.now(timezone.utc).date().isoformat()
+                    if today_str in history_data:
+                        current_published_ids = [item["twitch_clip_id"] for item in history_data[today_str]]
             except json.JSONDecodeError:
-                print("⚠️ Fichier d'historique des publications corrompu ou vide. Création d'un nouveau.")
-                current_published_ids = []
+                print("⚠️ Fichier d'historique des publications corrompu ou vide. Utilisation d'un historique vide.")
+            except Exception as e:
+                print(f"❌ Erreur lors du chargement de l'historique simulé : {e}")
 
-        selected_clip = select_next_short_clip(token, 
-                                               num_clips_per_source=50, # Augmente le nombre de clips à fetch
-                                               days_ago=1, # Recherche sur le dernier jour pour "le plus vu du jour"
-                                               already_published_clip_ids=current_published_ids)
+        eligible_clips_list = get_eligible_short_clips(
+            access_token=token,
+            num_clips_per_source=50,
+            days_ago=1,
+            already_published_clip_ids=current_published_ids
+        )
 
-        if selected_clip:
-            print("\n✅ Un clip a été sélectionné avec succès pour le Short.")
-            # Ici, vous ajouteriez la logique pour:
-            # 1. Télécharger le clip (ex: en utilisant yt-dlp)
-            # 2. (Optionnel) Découper le clip si sa durée est > MAX_VIDEO_DURATION_SECONDS (nécessite ffmpeg/moviepy)
-            # 3. Uploader le clip sur YouTube (nécessite l'API YouTube Data v3)
-            
-            # Après un upload réussi, vous devez ajouter l'ID du clip à votre historique et le sauvegarder.
-            # Exemple:
-            # current_published_ids.append(selected_clip["id"])
-            # with open(published_clips_log_path, "w", encoding="utf-8") as f:
-            #    json.dump(current_published_ids, f, ensure_ascii=False, indent=2)
-            # print(f"Clip {selected_clip['id']} ajouté à l'historique des publications.")
+        if eligible_clips_list:
+            print(f"\n✅ {len(eligible_clips_list)} clip(s) éligible(s) trouvé(s) pour les Shorts.")
+            print("Premier clip suggéré :")
+            selected_clip = eligible_clips_list[0]
+            print(f"  Titre: {selected_clip.get('title', 'N/A')}")
+            print(f"  Streamer: {selected_clip.get('broadcaster_name', 'N/A')}")
+            print(f"  Vues: {selected_clip.get('viewer_count', 0)}")
+            print(f"  Durée: {selected_clip.get('duration', 'N/A')}s")
+            print(f"  URL: {selected_clip.get('url', 'N/A')}")
         else:
             print("\n❌ Aucun clip approprié n'a pu être trouvé pour le Short cette fois.")
