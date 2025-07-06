@@ -168,17 +168,17 @@ def trim_video_for_short(input_path, output_path, max_duration_seconds=60, clip_
         stroke_color = "black"
         stroke_width = 1.5
         
-        title_clip = TextClip(title_text, fontsize=40, color=text_color,
+        title_clip = TextClip(title_text, fontsize=100, color=text_color,
                                 font=font_path, stroke_color=stroke_color, stroke_width=stroke_width,
                                 size=(target_width * 0.9, None),
                                 method='caption') \
                      .set_duration(duration) \
-                     .set_position(("center", 50))
+                     .set_position(("center", 30))
 
-        streamer_clip = TextClip(f"@{streamer_name}", fontsize=30, color=text_color,
+        streamer_clip = TextClip(f"@{streamer_name}", fontsize=90, color=text_color,
                                  font=font_path, stroke_color=stroke_color, stroke_width=stroke_width) \
                         .set_duration(duration) \
-                        .set_position(("center", target_height - 100))
+                        .set_position(("center", target_height - 70))
 
         script_dir = os.path.dirname(os.path.abspath(__file__))
         assets_dir = os.path.abspath(os.path.join(script_dir, '..', 'assets'))
