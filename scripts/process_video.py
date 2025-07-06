@@ -156,7 +156,7 @@ def trim_video_for_short(input_path, output_path, max_duration_seconds=60, clip_
         title_text = clip_data.get('title', 'Titre du clip')
         streamer_name = clip_data.get('broadcaster_name', 'Nom du streamer')
 
-        font_path = "Times New Roman"
+        font_path = "Times New Roman" # Anciennement DejaVuSans-Bold
         try:
             from PIL import ImageFont
             ImageFont.truetype(font_path, 10)
