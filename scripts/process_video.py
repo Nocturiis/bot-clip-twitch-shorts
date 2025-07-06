@@ -128,7 +128,7 @@ def trim_video_for_short(input_path, output_path, max_duration_seconds=60, clip_
             # ---------------------------------
             
             main_video_clip = clip.copy()
-            main_video_display_width = int(target_width * 0.9)
+            main_video_display_width = int(target_width * 1.4)
             main_video_clip = moviepy_resize(main_video_clip, width=main_video_display_width)
             main_video_clip = main_video_clip.fx(even_size)
 
